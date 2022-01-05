@@ -2,9 +2,11 @@ package custom_widget
 
 import (
 	"image"
+	"image/draw"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/canvas"
+	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
 )
 
@@ -19,6 +21,34 @@ type ImageTable struct {
 	colsNumber            int
 }
 
+func NewEmptyImageTable(imageSize fyne.Size) *ImageTable {
+	imageTable := &ImageTable{}
+	img := image.NewRGBA(image.Rectangle{image.Point{0, 0}, image.Point{int(imageSize.Width), int(imageSize.Height)}})
+	bg := theme.BackgroundColor()
+	draw.Draw(img, img.Bounds(), &image.Uniform{bg}, image.Point{0, 0}, draw.Src)
+	canvasImg := canvas.NewImageFromImage(img)
+	images := make([][]canvas.Image, 4)
+	for i := 0; i > 4; i++ {
+		images[i] = make([]canvas.Image, 4)
+		for j := 0; j < 4; j++ {
+			images[i][j] = *canvasImg
+		}
+	}
+	imageTable.images = &images
+	imageTable.ImageCallbackFunc = nil
+	imageTable.IndexCallbackFunc = nil
+	imageTable.SetImagesCallbackFunc = nil
+	imageTable.CreateCell = imageTable.ImageCreate
+	imageTable.Length = imageTable.ImagesLength
+	imageTable.UpdateCell = imageTable.ImageUpdate
+	imageTable.OnSelected = imageTable.ImageSelect
+	imageTable.imageSize = imageSize
+	imageTable.rowsNumber = 4
+	imageTable.colsNumber = 4
+	imageTable.ExtendBaseWidget(imageTable)
+	return imageTable
+}
+
 func NewImageTable(
 	images *[][]canvas.Image,
 	imageSize fyne.Size,
@@ -26,11 +56,11 @@ func NewImageTable(
 	imageSelected func(*canvas.Image),
 	indexSelected func(int, int),
 	setImages func(*[][]canvas.Image)) *ImageTable {
-	if images != nil {
-		if len(*images) != nbRows || len((*images)[0]) != nbCols {
-			panic("images matrix must corresponds to number of rows and columns")
-		}
+
+	if len(*images) != nbRows || len((*images)[0]) != nbCols {
+		panic("images matrix must corresponds to number of rows and columns")
 	}
+
 	imageTable := &ImageTable{}
 	imageTable.images = images
 	imageTable.ImageCallbackFunc = imageSelected
