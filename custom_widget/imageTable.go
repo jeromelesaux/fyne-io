@@ -89,13 +89,16 @@ func (i *ImageTable) SubstitueImage(row, col int, newImage canvas.Image) {
 	i.UpdateCell(widget.TableCellID{Row: row, Col: col}, &newImage)
 }
 
-func (i *ImageTable) UpdateAll() {
+func (i *ImageTable) Update(images *[][]canvas.Image, rowNumber, colNumber int) {
+	i.images = images
+	i.rowsNumber = rowNumber
+	i.colsNumber = colNumber
 	for x := 0; x < i.rowsNumber; x++ {
 		for y := 0; y < i.colsNumber; y++ {
 			i.UpdateCell(widget.TableCellID{Row: x, Col: y}, &(*i.images)[x][y])
 		}
 	}
-	i.Refresh()
+	canvas.Refresh(i)
 }
 
 func (i *ImageTable) ImagesLength() (row int, col int) {
