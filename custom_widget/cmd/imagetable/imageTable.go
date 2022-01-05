@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"image"
+	"image/draw"
 	"image/png"
 	"os"
 
@@ -16,12 +17,13 @@ import (
 )
 
 var win *fyne.Window
+var size float32 = 40.
 
 func main() {
 	a := app.New()
 	w := a.NewWindow("image table")
 	w.Resize(fyne.NewSize(900, 400))
-	table := ui.NewImageTable(NewImagesColletion(10, 10, OpenImage()), fyne.NewSize(40, 40), 10, 10, nil, indexSelected, nil)
+	table := ui.NewImageTable(NewImagesColletion(1000, 400, OpenImage()), fyne.NewSize(size, size), 1000, 400, nil, indexSelected, nil)
 	table.Refresh()
 	w.SetContent(
 		container.New(
@@ -36,8 +38,7 @@ func main() {
 			container.New(
 				layout.NewAdaptiveGridLayout(1),
 				widget.NewButton("update", func() {
-					img := OpenFyne()
-					table.Update(NewImagesColletion(12, 12, img), 12, 12)
+					table.Update(NewNumImagesCollection(200, 2000), 200, 2000)
 				}),
 			),
 		),
@@ -48,6 +49,20 @@ func main() {
 
 func indexSelected(row, col int) {
 	fmt.Printf("row;%d,col:%d\n", row, col)
+}
+
+func NewNumImagesCollection(nbRows, nbCols int) *[][]canvas.Image {
+	images := make([][]canvas.Image, nbRows)
+	for i := 0; i < nbRows; i++ {
+		images[i] = make([]canvas.Image, nbCols)
+	}
+	for i := 0; i < nbRows; i++ {
+		for j := 0; j < nbCols; j++ {
+			img := canvas.NewImageFromImage(ImageLabel(fmt.Sprintf(("%d-%d"), i, j)))
+			images[i][j] = *img
+		}
+	}
+	return &images
 }
 
 func NewImagesColletion(nbRows, nbCols int, in image.Image) *[][]canvas.Image {
@@ -87,5 +102,32 @@ func OpenImage() image.Image {
 	if err != nil {
 		panic(err)
 	}
+	return img
+}
+
+func ImageLabel(text string) image.Image {
+	img := image.NewRGBA(image.Rectangle{image.Point{0, 0}, image.Point{int(size), int(size)}})
+	draw.Draw(img, img.Bounds(), image.White, image.ZP, draw.Src)
+	/*fontBytes, err := ioutil.ReadFile("UbuntuMono-R.ttf")
+	if err != nil {
+		fmt.Println(err)
+	}
+	f, err := freetype.ParseFont(fontBytes)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	ctx := freetype.NewContext()
+	ctx.SetDPI(72)
+	ctx.SetDst(img)
+	ctx.SetFont(f)
+	ctx.SetFontSize(8.)
+	ctx.SetSrc(image.Black)
+
+	pt := freetype.Pt(5, 5+int(ctx.PointToFixed(8.0)>>6))
+	_, err = ctx.DrawString(text, pt)
+	if err != nil {
+		fmt.Println(err)
+	}*/
 	return img
 }

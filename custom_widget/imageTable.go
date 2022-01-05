@@ -115,6 +115,7 @@ func (i *ImageTable) ImageCreate() fyne.CanvasObject {
 func (i *ImageTable) ImageUpdate(id widget.TableCellID, o fyne.CanvasObject) {
 	c := (*i.images)[id.Row][id.Col]
 	o.(*canvas.Image).Image = c.Image
+	canvas.Refresh(o)
 }
 
 func (i *ImageTable) ImageSelect(id widget.TableCellID) {
