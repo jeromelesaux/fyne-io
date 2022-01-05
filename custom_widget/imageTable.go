@@ -28,7 +28,7 @@ func NewEmptyImageTable(imageSize fyne.Size) *ImageTable {
 	draw.Draw(img, img.Bounds(), &image.Uniform{bg}, image.Point{0, 0}, draw.Src)
 	canvasImg := canvas.NewImageFromImage(img)
 	images := make([][]canvas.Image, 4)
-	for i := 0; i > 4; i++ {
+	for i := 0; i < 4; i++ {
 		images[i] = make([]canvas.Image, 4)
 		for j := 0; j < 4; j++ {
 			images[i][j] = *canvasImg
