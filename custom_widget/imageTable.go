@@ -26,8 +26,10 @@ func NewImageTable(
 	imageSelected func(*canvas.Image),
 	indexSelected func(int, int),
 	setImages func(*[][]canvas.Image)) *ImageTable {
-	if len(*images) != nbRows || len((*images)[0]) != nbCols {
-		panic("images matrix must corresponds to number of rows and columns")
+	if images != nil {
+		if len(*images) != nbRows || len((*images)[0]) != nbCols {
+			panic("images matrix must corresponds to number of rows and columns")
+		}
 	}
 	imageTable := &ImageTable{}
 	imageTable.images = images
