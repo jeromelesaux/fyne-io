@@ -110,6 +110,13 @@ func (i *ImageTable) ImagesLength() (row int, col int) {
 	return i.rowsNumber, i.colsNumber
 }
 
+func (i *ImageTable) Reset() {
+	imgs := make([][]canvas.Image, 1)
+	imgs[0] = make([]canvas.Image, 1)
+	imgs[0][0] = *emptyCell(i.imageSize)
+	i.Update(&imgs, 1, 1)
+}
+
 func (i *ImageTable) AppendImage(image canvas.Image, rowNumber int) {
 	if rowNumber >= len(*i.images) {
 		return
