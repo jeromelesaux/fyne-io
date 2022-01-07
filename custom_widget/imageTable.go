@@ -105,6 +105,15 @@ func (i *ImageTable) ImagesLength() (row int, col int) {
 	return i.rowsNumber, i.colsNumber
 }
 
+func (i *ImageTable) AppendImage(image canvas.Image, rowNumber int) {
+	if rowNumber >= len(*i.images) {
+		return
+	}
+	(*i.images)[rowNumber] = append((*i.images)[rowNumber], image)
+	i.UpdateCell(widget.TableCellID{Row: rowNumber, Col: len((*i.images)[rowNumber]) - 1}, &(*i.images)[rowNumber][len((*i.images)[rowNumber])-1])
+	canvas.Refresh(i)
+}
+
 func (i *ImageTable) ImageCreate() fyne.CanvasObject {
 	img := image.NewRGBA(image.Rectangle{image.Point{0, 0}, image.Point{int(i.Size().Width), int(i.Size().Width)}})
 	r := canvas.NewImageFromImage(img)
