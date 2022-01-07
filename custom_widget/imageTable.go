@@ -21,16 +21,21 @@ type ImageTable struct {
 	colsNumber            int
 }
 
-func NewEmptyImageTable(imageSize fyne.Size) *ImageTable {
-	imageTable := &ImageTable{}
+func emptyCell(imageSize fyne.Size) *canvas.Image {
 	img := image.NewRGBA(image.Rectangle{image.Point{0, 0}, image.Point{int(imageSize.Width), int(imageSize.Height)}})
 	bg := theme.BackgroundColor()
 	draw.Draw(img, img.Bounds(), &image.Uniform{bg}, image.Point{0, 0}, draw.Src)
 	canvasImg := canvas.NewImageFromImage(img)
-	images := make([][]canvas.Image, 4)
-	for i := 0; i < 4; i++ {
-		images[i] = make([]canvas.Image, 4)
-		for j := 0; j < 4; j++ {
+	return canvasImg
+}
+
+func NewEmptyImageTable(imageSize fyne.Size) *ImageTable {
+	imageTable := &ImageTable{}
+	canvasImg := emptyCell(imageSize)
+	images := make([][]canvas.Image, 1)
+	for i := 0; i < 1; i++ {
+		images[i] = make([]canvas.Image, 1)
+		for j := 0; j < 1; j++ {
 			images[i][j] = *canvasImg
 		}
 	}
@@ -43,8 +48,8 @@ func NewEmptyImageTable(imageSize fyne.Size) *ImageTable {
 	imageTable.UpdateCell = imageTable.ImageUpdate
 	imageTable.OnSelected = imageTable.ImageSelect
 	imageTable.imageSize = imageSize
-	imageTable.rowsNumber = 4
-	imageTable.colsNumber = 4
+	imageTable.rowsNumber = 1
+	imageTable.colsNumber = 1
 	imageTable.ExtendBaseWidget(imageTable)
 	return imageTable
 }
@@ -109,9 +114,15 @@ func (i *ImageTable) AppendImage(image canvas.Image, rowNumber int) {
 	if rowNumber >= len(*i.images) {
 		return
 	}
+	for x := 0; x < i.rowsNumber; x++ {
+		if x != rowNumber {
+			(*i.images)[x] = append((*i.images)[x], *emptyCell(i.imageSize))
+		}
+	}
 	(*i.images)[rowNumber] = append((*i.images)[rowNumber], image)
-	i.UpdateCell(widget.TableCellID{Row: rowNumber, Col: len((*i.images)[rowNumber]) - 1}, &(*i.images)[rowNumber][len((*i.images)[rowNumber])-1])
-	canvas.Refresh(i)
+	i.colsNumber++
+	i.Refresh()
+	//	i.UpdateCell(widget.TableCellID{Row: rowNumber, Col: i.colsNumber}, &(*i.images)[rowNumber][i.colsNumber])
 }
 
 func (i *ImageTable) ImageCreate() fyne.CanvasObject {

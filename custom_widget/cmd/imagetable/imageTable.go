@@ -23,7 +23,7 @@ func main() {
 	a := app.New()
 	w := a.NewWindow("image table")
 	w.Resize(fyne.NewSize(900, 400))
-	table := ui.NewImageTable(NewImagesColletion(1000, 400, OpenImage()), fyne.NewSize(size, size), 1000, 400, nil, indexSelected, nil)
+	table := ui.NewImageTable(NewImagesColletion(1, 4, OpenImage()), fyne.NewSize(size, size), 1, 4, nil, indexSelected, nil)
 	table.Refresh()
 	w.SetContent(
 		container.New(
@@ -38,7 +38,8 @@ func main() {
 			container.New(
 				layout.NewAdaptiveGridLayout(1),
 				widget.NewButton("update", func() {
-					table.Update(NewNumImagesCollection(200, 2000), 200, 2000)
+					img := OpenFyne()
+					table.AppendImage(*canvas.NewImageFromImage(img), 0)
 				}),
 			),
 		),
