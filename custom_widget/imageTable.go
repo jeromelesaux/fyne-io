@@ -92,7 +92,7 @@ func (i *ImageTable) SubstitueImage(row, col int, newImage canvas.Image) {
 	}
 	(*i.images)[row][col] = newImage
 	i.UpdateCell(widget.TableCellID{Row: row, Col: col}, &newImage)
-	i.Refresh()
+	canvas.Refresh(i)
 }
 
 func (i *ImageTable) Update(images *[][]canvas.Image, rowNumber, colNumber int) {
@@ -116,6 +116,7 @@ func (i *ImageTable) Reset() {
 	imgs[0] = make([]canvas.Image, 1)
 	imgs[0][0] = *emptyCell(i.imageSize)
 	i.Update(&imgs, 1, 1)
+	canvas.Refresh(i)
 }
 
 func (i *ImageTable) AppendImage(image canvas.Image, rowNumber int) {
