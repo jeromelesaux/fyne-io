@@ -83,6 +83,17 @@ func NewImageTable(
 	return imageTable
 }
 
+func (i *ImageTable) Images() [][]image.Image {
+	imgs := make([][]image.Image, i.rowsNumber)
+	for x := 0; x < i.rowsNumber; x++ {
+		imgs[x] = make([]image.Image, i.colsNumber)
+		for y := 0; y < i.colsNumber; y++ {
+			imgs[x][y] = (*i.images)[x][y].Image
+		}
+	}
+	return imgs
+}
+
 func (i *ImageTable) SubstitueImage(row, col int, newImage canvas.Image) {
 	if row < 0 || row > len(*i.images) {
 		return
