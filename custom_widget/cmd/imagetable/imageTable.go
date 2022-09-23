@@ -16,10 +16,10 @@ import (
 	ui "github.com/jeromelesaux/fyne-io/custom_widget"
 )
 
-var win *fyne.Window
 var size float32 = 40.
 
 func main() {
+	//	var win *fyne.Window
 	a := app.New()
 	w := a.NewWindow("image table")
 	w.Resize(fyne.NewSize(900, 400))
@@ -44,7 +44,7 @@ func main() {
 			),
 		),
 	)
-	win = &w
+	//win = &w
 	w.ShowAndRun()
 }
 
@@ -108,7 +108,7 @@ func OpenImage() image.Image {
 
 func ImageLabel(text string) image.Image {
 	img := image.NewRGBA(image.Rectangle{image.Point{0, 0}, image.Point{int(size), int(size)}})
-	draw.Draw(img, img.Bounds(), image.White, image.ZP, draw.Src)
+	draw.Draw(img, img.Bounds(), image.White, image.Point{}, draw.Src)
 	/*fontBytes, err := ioutil.ReadFile("UbuntuMono-R.ttf")
 	if err != nil {
 		fmt.Println(err)
