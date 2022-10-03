@@ -10,12 +10,48 @@ import (
 	"fyne.io/fyne/v2/widget"
 )
 
+type ImagesTableCollection struct {
+	images          []*canvas.Image
+	ImagesPerRow    int
+	ImagesPerColumn int
+}
+
+func NewImagesTableCollection(row, col int, size fyne.Size) *ImagesTableCollection {
+	itc := &ImagesTableCollection{
+		ImagesPerRow:    row,
+		ImagesPerColumn: col,
+		images:          make([]*canvas.Image, row*col)}
+	for i := 0; i < itc.ImagesPerColumn*itc.ImagesPerRow; i++ {
+		itc.images[i] = emptyCell(size)
+	}
+	return itc
+}
+
+func (i *ImagesTableCollection) Append(im *canvas.Image) {
+	i.ImagesPerColumn++
+	i.images = append(i.images, im)
+
+}
+
+func (i *ImagesTableCollection) At(row, col int) *canvas.Image {
+	if row < i.ImagesPerRow && col < i.ImagesPerColumn {
+		return i.images[row*col]
+	}
+	return &canvas.Image{}
+}
+
+func (i *ImagesTableCollection) Set(row, col int, img *canvas.Image) {
+	if row < i.ImagesPerRow && col < i.ImagesPerColumn {
+		i.images[row*col] = img
+	}
+}
+
 type ImageTable struct {
 	widget.Table
-	images                *[][]canvas.Image
+	images                *ImagesTableCollection
 	ImageCallbackFunc     func(*canvas.Image)
 	IndexCallbackFunc     func(int, int)
-	SetImagesCallbackFunc func(*[][]canvas.Image)
+	SetImagesCallbackFunc func(*ImagesTableCollection)
 	imageSize             fyne.Size
 	rowsNumber            int
 	colsNumber            int
@@ -31,15 +67,7 @@ func emptyCell(imageSize fyne.Size) *canvas.Image {
 
 func NewEmptyImageTable(imageSize fyne.Size) *ImageTable {
 	imageTable := &ImageTable{}
-	canvasImg := emptyCell(imageSize)
-	images := make([][]canvas.Image, 1)
-	for i := 0; i < 1; i++ {
-		images[i] = make([]canvas.Image, 1)
-		for j := 0; j < 1; j++ {
-			images[i][j] = *canvasImg
-		}
-	}
-	imageTable.images = &images
+	imageTable.images = NewImagesTableCollection(1, 1, imageSize)
 	imageTable.ImageCallbackFunc = nil
 	imageTable.IndexCallbackFunc = nil
 	imageTable.SetImagesCallbackFunc = nil
@@ -55,14 +83,14 @@ func NewEmptyImageTable(imageSize fyne.Size) *ImageTable {
 }
 
 func NewImageTable(
-	images *[][]canvas.Image,
+	images *ImagesTableCollection,
 	imageSize fyne.Size,
 	nbRows, nbCols int,
 	imageSelected func(*canvas.Image),
 	indexSelected func(int, int),
-	setImages func(*[][]canvas.Image)) *ImageTable {
+	setImages func(*ImagesTableCollection)) *ImageTable {
 
-	if len(*images) != nbRows || len((*images)[0]) != nbCols {
+	if images.ImagesPerRow != nbRows || images.ImagesPerColumn != nbCols {
 		panic("images matrix must corresponds to number of rows and columns")
 	}
 
@@ -88,31 +116,31 @@ func (i *ImageTable) Images() [][]image.Image {
 	for x := 0; x < i.rowsNumber; x++ {
 		imgs[x] = make([]image.Image, i.colsNumber)
 		for y := 0; y < i.colsNumber; y++ {
-			imgs[x][y] = (*i.images)[x][y].Image
+			imgs[x][y] = (*i.images).At(x, y).Image
 		}
 	}
 	return imgs
 }
 
-func (i *ImageTable) SubstitueImage(row, col int, newImage canvas.Image) {
-	if row < 0 || row > len(*i.images) {
+func (i *ImageTable) SubstitueImage(row, col int, newImage *canvas.Image) {
+	if row < 0 || row > i.images.ImagesPerRow {
 		return
 	}
-	if col < 0 || col > len((*i.images)[0]) {
+	if col < 0 || col > i.images.ImagesPerColumn {
 		return
 	}
-	(*i.images)[row][col] = newImage
-	i.UpdateCell(widget.TableCellID{Row: row, Col: col}, &newImage)
+	i.images.Set(row, col, newImage)
+	i.UpdateCell(widget.TableCellID{Row: row, Col: col}, newImage)
 	canvas.Refresh(i)
 }
 
-func (i *ImageTable) Update(images *[][]canvas.Image, rowNumber, colNumber int) {
+func (i *ImageTable) Update(images *ImagesTableCollection, rowNumber, colNumber int) {
 	i.images = images
 	i.rowsNumber = rowNumber
 	i.colsNumber = colNumber
 	for x := 0; x < i.rowsNumber; x++ {
 		for y := 0; y < i.colsNumber; y++ {
-			i.UpdateCell(widget.TableCellID{Row: x, Col: y}, &(*i.images)[x][y])
+			i.UpdateCell(widget.TableCellID{Row: x, Col: y}, i.images.At(x, y))
 		}
 	}
 	canvas.Refresh(i)
@@ -123,26 +151,17 @@ func (i *ImageTable) ImagesLength() (row int, col int) {
 }
 
 func (i *ImageTable) Reset() {
-	imgs := make([][]canvas.Image, 1)
-	imgs[0] = make([]canvas.Image, 1)
-	imgs[0][0] = *emptyCell(i.imageSize)
-	i.Update(&imgs, 1, 1)
+	imgs := NewImagesTableCollection(1, 1, i.imageSize)
+	i.Update(imgs, 1, 1)
 	canvas.Refresh(i)
 }
 
-func (i *ImageTable) AppendImage(image canvas.Image, rowNumber int) {
-	if rowNumber >= len(*i.images) {
-		return
-	}
-	for x := 0; x < i.rowsNumber; x++ {
-		if x != rowNumber {
-			(*i.images)[x] = append((*i.images)[x], *emptyCell(i.imageSize))
-		}
-	}
-	(*i.images)[rowNumber] = append((*i.images)[rowNumber], image)
-	i.colsNumber++
-	i.Refresh()
-	//	i.UpdateCell(widget.TableCellID{Row: rowNumber, Col: i.colsNumber}, &(*i.images)[rowNumber][i.colsNumber])
+func (i *ImageTable) AppendImage(im *canvas.Image) {
+	i.images.Append(im)
+	x := i.images.ImagesPerRow
+	y := i.images.ImagesPerColumn
+	i.UpdateCell(widget.TableCellID{Row: x, Col: y}, i.images.At(x, y))
+	canvas.Refresh(i)
 }
 
 func (i *ImageTable) ImageCreate() fyne.CanvasObject {
@@ -153,15 +172,15 @@ func (i *ImageTable) ImageCreate() fyne.CanvasObject {
 }
 
 func (i *ImageTable) ImageUpdate(id widget.TableCellID, o fyne.CanvasObject) {
-	c := (*i.images)[id.Row][id.Col]
+	c := i.images.At(id.Row, id.Col)
 	o.(*canvas.Image).Image = c.Image
 	canvas.Refresh(o)
 }
 
 func (i *ImageTable) ImageSelect(id widget.TableCellID) {
-	c := (*i.images)[id.Row][id.Col]
+	c := i.images.At(id.Row, id.Col)
 	if i.ImageCallbackFunc != nil {
-		i.ImageCallbackFunc(&c)
+		i.ImageCallbackFunc(c)
 	}
 	if i.IndexCallbackFunc != nil {
 		i.IndexCallbackFunc(id.Row, id.Col)

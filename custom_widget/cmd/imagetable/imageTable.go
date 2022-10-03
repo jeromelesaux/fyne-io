@@ -39,7 +39,7 @@ func main() {
 				layout.NewAdaptiveGridLayout(1),
 				widget.NewButton("update", func() {
 					img := OpenFyne()
-					table.AppendImage(*canvas.NewImageFromImage(img), 0)
+					table.AppendImage(canvas.NewImageFromImage(img))
 				}),
 			),
 		),
@@ -52,32 +52,26 @@ func indexSelected(row, col int) {
 	fmt.Printf("row;%d,col:%d\n", row, col)
 }
 
-func NewNumImagesCollection(nbRows, nbCols int) *[][]canvas.Image {
-	images := make([][]canvas.Image, nbRows)
-	for i := 0; i < nbRows; i++ {
-		images[i] = make([]canvas.Image, nbCols)
-	}
+func NewNumImagesCollection(nbRows, nbCols int) *ui.ImagesTableCollection {
+	images := ui.NewImagesTableCollection(nbRows, nbCols, fyne.NewSize(50., 50.))
 	for i := 0; i < nbRows; i++ {
 		for j := 0; j < nbCols; j++ {
 			img := canvas.NewImageFromImage(ImageLabel(fmt.Sprintf(("%d-%d"), i, j)))
-			images[i][j] = *img
+			images.Set(i, j, img)
 		}
 	}
-	return &images
+	return images
 }
 
-func NewImagesColletion(nbRows, nbCols int, in image.Image) *[][]canvas.Image {
-	images := make([][]canvas.Image, nbRows)
-	for i := 0; i < nbRows; i++ {
-		images[i] = make([]canvas.Image, nbCols)
-	}
-	img := canvas.NewImageFromImage(in)
+func NewImagesColletion(nbRows, nbCols int, in image.Image) *ui.ImagesTableCollection {
+	images := ui.NewImagesTableCollection(nbRows, nbCols, fyne.NewSize(50., 50.))
 	for i := 0; i < nbRows; i++ {
 		for j := 0; j < nbCols; j++ {
-			images[i][j] = *img
+			img := canvas.NewImageFromImage(ImageLabel(fmt.Sprintf(("%d-%d"), i, j)))
+			images.Set(i, j, img)
 		}
 	}
-	return &images
+	return images
 }
 
 func OpenFyne() image.Image {
