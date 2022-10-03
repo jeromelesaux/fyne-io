@@ -65,8 +65,8 @@ func indexSelected(row, col int) {
 	fmt.Printf("row;%d,col:%d\n", row, col)
 }
 
-func NewNumImagesCollection(nbRows, nbCols int) *ui.ImagesTableCollection {
-	images := ui.NewImagesTableCollection(nbRows, nbCols, fyne.NewSize(50., 50.))
+func NewNumImagesCollection(nbRows, nbCols int) *ui.ImageTableCache {
+	images := ui.NewImageTableCache(nbRows, nbCols, fyne.NewSize(50., 50.))
 	for i := 0; i < nbRows; i++ {
 		for j := 0; j < nbCols; j++ {
 			img := canvas.NewImageFromImage(ImageLabel(fmt.Sprintf(("%d-%d"), i, j)))
@@ -76,8 +76,8 @@ func NewNumImagesCollection(nbRows, nbCols int) *ui.ImagesTableCollection {
 	return images
 }
 
-func NewImagesColletion(nbRows, nbCols int, in image.Image) *ui.ImagesTableCollection {
-	images := ui.NewImagesTableCollection(nbRows, nbCols, fyne.NewSize(50., 50.))
+func NewImagesColletion(nbRows, nbCols int, in image.Image) *ui.ImageTableCache {
+	images := ui.NewImageTableCache(nbRows, nbCols, fyne.NewSize(50., 50.))
 	for i := 0; i < nbRows; i++ {
 		for j := 0; j < nbCols; j++ {
 			img := canvas.NewImageFromImage(in)
