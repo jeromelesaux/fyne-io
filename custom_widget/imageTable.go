@@ -11,33 +11,54 @@ import (
 )
 
 type ImagesTableCollection struct {
-	images          []*canvas.Image
+	images          [][]*canvas.Image
 	ImagesPerRow    int
 	ImagesPerColumn int
-	Left            int
 }
 
 func NewImagesTableCollection(row, col int, size fyne.Size) *ImagesTableCollection {
-	itc := &ImagesTableCollection{
+	imgs := make([][]*canvas.Image, row)
+	for i := 0; i < row; i++ {
+		imgs[i] = make([]*canvas.Image, col)
+		for j := 0; j < col; j++ {
+			imgs[i][j] = emptyCell(size)
+		}
+	}
+
+	indices := make([]int, row)
+	for i := 0; i < row; i++ {
+		indices[i] = col
+	}
+	return &ImagesTableCollection{
 		ImagesPerRow:    row,
 		ImagesPerColumn: col,
-		images:          make([]*canvas.Image, row*col)}
-	for i := 0; i < itc.ImagesPerColumn*itc.ImagesPerRow; i++ {
-		itc.images[i] = emptyCell(size)
+		images:          imgs,
 	}
-	return itc
 }
 
 func (i *ImagesTableCollection) At(row, col int) *canvas.Image {
 	if row < i.ImagesPerRow && col < i.ImagesPerColumn {
-		return i.images[row+(row*col)]
+		return i.images[row][col]
 	}
 	return &canvas.Image{}
 }
 
 func (i *ImagesTableCollection) Set(row, col int, img *canvas.Image) {
 	if row < i.ImagesPerRow && col < i.ImagesPerColumn {
-		i.images[row+(row*col)] = img
+		i.images[row][col] = img
+	}
+}
+
+func (im *ImagesTableCollection) Append(rowIndice int, img *canvas.Image) {
+	if rowIndice < im.ImagesPerRow {
+		for i := 0; i < im.ImagesPerRow; i++ {
+			if rowIndice == i {
+				im.images[i] = append(im.images[i], img)
+			} else {
+				im.images[i] = append(im.images[i], &canvas.Image{})
+			}
+		}
+		im.ImagesPerColumn++
 	}
 }
 
@@ -126,6 +147,13 @@ func (i *ImageTable) SubstitueImage(row, col int, newImage *canvas.Image) {
 	}
 	i.images.Set(row, col, newImage)
 	i.UpdateCell(widget.TableCellID{Row: row, Col: col}, newImage)
+	i.Refresh()
+	canvas.Refresh(i)
+}
+
+func (i *ImageTable) Append(rowIndice int, img *canvas.Image) {
+	i.images.Append(rowIndice, img)
+	i.Update(i.images, i.images.ImagesPerRow, i.images.ImagesPerColumn)
 	i.Refresh()
 	canvas.Refresh(i)
 }

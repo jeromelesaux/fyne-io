@@ -49,6 +49,12 @@ func main() {
 					table.Update(c, 2, 4)
 				}),
 			),
+			container.New(
+				layout.NewAdaptiveGridLayout(1),
+				widget.NewButton("append", func() {
+					table.Append(0, canvas.NewImageFromImage(OpenFyne()))
+				}),
+			),
 		),
 	)
 	//win = &w
