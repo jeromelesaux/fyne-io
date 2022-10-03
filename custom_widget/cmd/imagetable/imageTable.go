@@ -37,9 +37,16 @@ func main() {
 			),
 			container.New(
 				layout.NewAdaptiveGridLayout(1),
+				widget.NewButton("reset", func() {
+					//img := OpenFyne()
+					table.Reset()
+				}),
+			),
+			container.New(
+				layout.NewAdaptiveGridLayout(1),
 				widget.NewButton("update", func() {
-					img := OpenFyne()
-					table.AppendImage(canvas.NewImageFromImage(img))
+					c := NewImagesColletion(2, 4, OpenFyne())
+					table.Update(c, 2, 4)
 				}),
 			),
 		),
@@ -67,7 +74,7 @@ func NewImagesColletion(nbRows, nbCols int, in image.Image) *ui.ImagesTableColle
 	images := ui.NewImagesTableCollection(nbRows, nbCols, fyne.NewSize(50., 50.))
 	for i := 0; i < nbRows; i++ {
 		for j := 0; j < nbCols; j++ {
-			img := canvas.NewImageFromImage(ImageLabel(fmt.Sprintf(("%d-%d"), i, j)))
+			img := canvas.NewImageFromImage(in)
 			images.Set(i, j, img)
 		}
 	}

@@ -14,6 +14,7 @@ type ImagesTableCollection struct {
 	images          []*canvas.Image
 	ImagesPerRow    int
 	ImagesPerColumn int
+	Left            int
 }
 
 func NewImagesTableCollection(row, col int, size fyne.Size) *ImagesTableCollection {
@@ -27,22 +28,16 @@ func NewImagesTableCollection(row, col int, size fyne.Size) *ImagesTableCollecti
 	return itc
 }
 
-func (i *ImagesTableCollection) Append(im *canvas.Image) {
-	i.ImagesPerColumn++
-	i.images = append(i.images, im)
-
-}
-
 func (i *ImagesTableCollection) At(row, col int) *canvas.Image {
 	if row < i.ImagesPerRow && col < i.ImagesPerColumn {
-		return i.images[row*col]
+		return i.images[row+(row*col)]
 	}
 	return &canvas.Image{}
 }
 
 func (i *ImagesTableCollection) Set(row, col int, img *canvas.Image) {
 	if row < i.ImagesPerRow && col < i.ImagesPerColumn {
-		i.images[row*col] = img
+		i.images[row+(row*col)] = img
 	}
 }
 
@@ -131,6 +126,7 @@ func (i *ImageTable) SubstitueImage(row, col int, newImage *canvas.Image) {
 	}
 	i.images.Set(row, col, newImage)
 	i.UpdateCell(widget.TableCellID{Row: row, Col: col}, newImage)
+	i.Refresh()
 	canvas.Refresh(i)
 }
 
@@ -143,6 +139,7 @@ func (i *ImageTable) Update(images *ImagesTableCollection, rowNumber, colNumber 
 			i.UpdateCell(widget.TableCellID{Row: x, Col: y}, i.images.At(x, y))
 		}
 	}
+	i.Refresh()
 	canvas.Refresh(i)
 }
 
@@ -153,14 +150,7 @@ func (i *ImageTable) ImagesLength() (row int, col int) {
 func (i *ImageTable) Reset() {
 	imgs := NewImagesTableCollection(1, 1, i.imageSize)
 	i.Update(imgs, 1, 1)
-	canvas.Refresh(i)
-}
-
-func (i *ImageTable) AppendImage(im *canvas.Image) {
-	i.images.Append(im)
-	x := i.images.ImagesPerRow
-	y := i.images.ImagesPerColumn
-	i.UpdateCell(widget.TableCellID{Row: x, Col: y}, i.images.At(x, y))
+	i.Refresh()
 	canvas.Refresh(i)
 }
 
