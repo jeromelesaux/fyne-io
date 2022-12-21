@@ -38,7 +38,7 @@ func main() {
 			container.New(
 				layout.NewAdaptiveGridLayout(1),
 				widget.NewButton("reset", func() {
-					//img := OpenFyne()
+					// img := OpenFyne()
 					table.Reset()
 				}),
 			),
@@ -52,12 +52,12 @@ func main() {
 			container.New(
 				layout.NewAdaptiveGridLayout(1),
 				widget.NewButton("append", func() {
-					table.Append(0, canvas.NewImageFromImage(OpenFyne()))
+					table.AppendImage(0, canvas.NewImageFromImage(OpenFyne()))
 				}),
 			),
 		),
 	)
-	//win = &w
+	// win = &w
 	w.ShowAndRun()
 }
 
