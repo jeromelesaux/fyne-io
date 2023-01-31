@@ -7,7 +7,7 @@ import (
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
 	"fyne.io/fyne/v2/container"
-	ui "github.com/jeromelesaux/fyne-io/custom_widget"
+	ui "github.com/jeromelesaux/fyne-io/widget"
 )
 
 func main() {

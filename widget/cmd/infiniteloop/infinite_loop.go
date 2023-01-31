@@ -8,7 +8,8 @@ import (
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/layout"
 	"fyne.io/fyne/v2/widget"
-	"github.com/jeromelesaux/fyne-io/custom_widget"
+
+	custom "github.com/jeromelesaux/fyne-io/widget"
 )
 
 func main() {
@@ -19,14 +20,12 @@ func main() {
 		container.New(
 			layout.NewAdaptiveGridLayout(1),
 			widget.NewButton("fire me", func() {
-				p := custom_widget.NewProgressInfinite("computing please wait...", w)
+				p := custom.NewProgressInfinite("computing please wait...", w)
 				p.Show()
 				go func() {
 					t := time.NewTicker(4 * time.Second)
-					select {
-					case <-t.C:
-						p.Hide()
-					}
+					<-t.C
+					p.Hide()
 				}()
 			}),
 		),

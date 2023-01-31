@@ -10,12 +10,14 @@ import (
 	"fyne.io/fyne/v2/dialog"
 	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
-	ui "github.com/jeromelesaux/fyne-io/custom_widget"
+	ui "github.com/jeromelesaux/fyne-io/widget"
 	"github.com/jeromelesaux/martine/constants"
 )
 
-var colorIndex int
-var win *fyne.Window
+var (
+	colorIndex int
+	win        *fyne.Window
+)
 
 func main() {
 	a := app.New()
@@ -43,7 +45,6 @@ func index(i int) {
 }
 
 func swapColor(p color.Palette, w fyne.Window) {
-
 	pt := ui.NewPaletteTable(p, clr, index, setPalette)
 	var cont *fyne.Container
 	var colorToChange color.Color

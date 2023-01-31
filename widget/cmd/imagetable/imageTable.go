@@ -13,7 +13,7 @@ import (
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/layout"
 	"fyne.io/fyne/v2/widget"
-	ui "github.com/jeromelesaux/fyne-io/custom_widget"
+	ui "github.com/jeromelesaux/fyne-io/widget"
 )
 
 var size float32 = 40.
