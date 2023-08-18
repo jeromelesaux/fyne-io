@@ -17,6 +17,14 @@ type ImageSelectionTable struct {
 	size     fyne.Size
 }
 
+func NewImageSelectionTable(size fyne.Size) *ImageSelectionTable {
+	return &ImageSelectionTable{
+		images:   make([]*canvas.Image, 0),
+		selected: make([]bool, 0),
+		size:     size,
+	}
+}
+
 func NewImageSelectionTableWithImages(imgs []image.Image, size fyne.Size) *ImageSelectionTable {
 	table := &ImageSelectionTable{
 		images:   make([]*canvas.Image, len(imgs)),
@@ -46,6 +54,13 @@ func (t *ImageSelectionTable) Images() []image.Image {
 		}
 	}
 	return im
+}
+func (t *ImageSelectionTable) Substitue(indice int, img *canvas.Image) {
+	if indice >= len(t.images) {
+		return
+	}
+	t.images[indice] = img
+	canvas.Refresh(t)
 }
 
 func (t *ImageSelectionTable) onSelect(id widget.TableCellID) {
