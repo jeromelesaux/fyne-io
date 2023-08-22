@@ -60,6 +60,19 @@ func (t *ImageSelectionTable) Substitue(indice int, img *canvas.Image) {
 		return
 	}
 	t.images[indice] = img
+	t.Refresh()
+	canvas.Refresh(t)
+}
+
+func (t *ImageSelectionTable) Remove(pos int) {
+	t.images = append(t.images[:pos], t.images[pos+1:]...)
+	t.Refresh()
+	canvas.Refresh(t)
+}
+
+func (t *ImageSelectionTable) Reset() {
+	t.images = make([]*canvas.Image, 0)
+	t.selected = make([]bool, 0)
 	canvas.Refresh(t)
 }
 
