@@ -18,11 +18,19 @@ type ImageSelectionTable struct {
 }
 
 func NewImageSelectionTable(size fyne.Size) *ImageSelectionTable {
-	return &ImageSelectionTable{
+	table := &ImageSelectionTable{
 		images:   make([]*canvas.Image, 0),
 		selected: make([]bool, 0),
 		size:     size,
 	}
+
+	table.UpdateCell = table.updateCell
+	table.Length = table.length
+	table.CreateCell = table.createCell
+	table.OnSelected = table.onSelect
+	table.ExtendBaseWidget(table)
+	return table
+
 }
 
 func NewImageSelectionTableWithImages(imgs []image.Image, size fyne.Size) *ImageSelectionTable {
