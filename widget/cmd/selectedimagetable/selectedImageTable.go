@@ -15,12 +15,12 @@ import (
 	ui "github.com/jeromelesaux/fyne-io/widget"
 )
 
-var size float32 = 100.
+var size float32 = 70.
 
 func main() {
 	a := app.New()
 	w := a.NewWindow("image table")
-	w.Resize(fyne.NewSize(400, 400))
+	w.Resize(fyne.NewSize(400, 200))
 	imgs := []image.Image{OpenImage(), OpenImage(), OpenImage()}
 	t := ui.NewImageSelectionTableWithImages(imgs, fyne.NewSize(size, size))
 	w.SetContent(

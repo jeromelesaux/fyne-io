@@ -97,9 +97,13 @@ func (t *ImageSelectionTable) Append(img *canvas.Image) {
 	canvas.Refresh(t)
 }
 
+func (t *ImageSelectionTable) MinSize() fyne.Size {
+	return fyne.NewSize(t.size.Width, t.size.Height+t.size.Width)
+}
+
 func (t *ImageSelectionTable) createCell() fyne.CanvasObject {
-	c := container.NewMax(emptyCell(t.size), widget.NewIcon(nil))
-	//	c.Resize(fyne.NewSize(t.size.Width, t.size.Height*2))
+	icon := widget.NewIcon(nil)
+	c := container.NewGridWrap(t.size, emptyCell(t.size), icon)
 	return c
 }
 
@@ -111,8 +115,6 @@ func (t *ImageSelectionTable) updateCell(id widget.TableCellID, o fyne.CanvasObj
 	case 0:
 		c.Hide()
 		i.Image = t.images[id.Col].Image
-		i.SetMinSize(t.size)
-		i.Refresh()
 		i.Show()
 	case 1:
 		if t.selected[id.Col] {
@@ -122,7 +124,6 @@ func (t *ImageSelectionTable) updateCell(id widget.TableCellID, o fyne.CanvasObj
 		}
 		c.Show()
 	}
-
 }
 
 func (t *ImageSelectionTable) length() (int, int) {
