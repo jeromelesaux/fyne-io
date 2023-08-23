@@ -63,7 +63,7 @@ type ImageSelectionTable struct {
 func NewImageSelectionTable(size fyne.Size) *ImageSelectionTable {
 	t := &ImageSelectionTable{
 		size:      size,
-		Container: container.NewAdaptiveGrid(0),
+		Container: container.NewAdaptiveGrid(8),
 	}
 	return t
 
@@ -71,7 +71,7 @@ func NewImageSelectionTable(size fyne.Size) *ImageSelectionTable {
 
 func NewImageSelectionTableWithImages(imgs []image.Image, size fyne.Size) *ImageSelectionTable {
 	t := &ImageSelectionTable{
-		Container: container.NewAdaptiveGrid(len(imgs)),
+		Container: container.NewAdaptiveGrid(8),
 		size:      size,
 	}
 
