@@ -6,126 +6,104 @@ import (
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/canvas"
 	"fyne.io/fyne/v2/container"
-	"fyne.io/fyne/v2/theme"
+	"fyne.io/fyne/v2/layout"
 	"fyne.io/fyne/v2/widget"
 )
 
+type CheckedImage struct {
+	c        *widget.Check
+	Selected bool
+	i        *canvas.Image
+	s        fyne.Size
+}
+
+func (c *CheckedImage) tapped(b bool) {
+	c.Selected = b
+}
+
+func NewCheckedImageWithImage(i *canvas.Image, s fyne.Size) *fyne.Container {
+	c := &CheckedImage{
+		Selected: true,
+		i:        i,
+		s:        s,
+	}
+
+	cb := widget.NewCheck("", c.tapped)
+	cb.SetChecked(true)
+	c.c = cb
+	return container.New(
+		layout.NewMaxLayout(),
+		c.i,
+		c.c,
+	)
+}
+
+func NewCheckedImage(s fyne.Size) *fyne.Container {
+	c := &CheckedImage{
+		Selected: true,
+		i:        emptyCell(s),
+		s:        s,
+	}
+
+	cb := widget.NewCheck("", c.tapped)
+	cb.SetChecked(true)
+	c.c = cb
+	return container.New(
+		layout.NewMaxLayout(),
+		c.i,
+		c.c,
+	)
+}
+
 type ImageSelectionTable struct {
-	widget.Table
-	images   []*canvas.Image
-	selected []bool
-	size     fyne.Size
+	*fyne.Container
+	size fyne.Size
 }
 
 func NewImageSelectionTable(size fyne.Size) *ImageSelectionTable {
-	table := &ImageSelectionTable{
-		images:   make([]*canvas.Image, 0),
-		selected: make([]bool, 0),
-		size:     size,
+	t := &ImageSelectionTable{
+		size:      size,
+		Container: container.NewAdaptiveGrid(0),
 	}
-
-	table.UpdateCell = table.updateCell
-	table.Length = table.length
-	table.CreateCell = table.createCell
-	table.OnSelected = table.onSelect
-	table.ExtendBaseWidget(table)
-	return table
+	return t
 
 }
 
 func NewImageSelectionTableWithImages(imgs []image.Image, size fyne.Size) *ImageSelectionTable {
-	table := &ImageSelectionTable{
-		images:   make([]*canvas.Image, len(imgs)),
-		selected: make([]bool, len(imgs)),
-		size:     size,
+	t := &ImageSelectionTable{
+		Container: container.NewAdaptiveGrid(len(imgs)),
+		size:      size,
 	}
 
 	for i := 0; i < len(imgs); i++ {
-		table.selected[i] = true
-		table.images[i] = canvas.NewImageFromImage(imgs[i])
+		ci := canvas.NewImageFromImage(imgs[i])
+		t.Add(NewCheckedImageWithImage(ci, t.size))
 	}
 
-	table.UpdateCell = table.updateCell
-	table.Length = table.length
-	table.CreateCell = table.createCell
-	table.OnSelected = table.onSelect
-	table.ExtendBaseWidget(table)
-
-	return table
+	return t
 }
 
 func (t *ImageSelectionTable) Images() []image.Image {
 	im := make([]image.Image, 0)
-	for i := 0; i < len(t.images); i++ {
-		if t.selected[i] {
-			im = append(im, t.images[i].Image)
+	for _, v := range t.Container.Objects {
+		c := v.(*fyne.Container).Objects[1].(*widget.Check)
+		i := v.(*fyne.Container).Objects[0].(*canvas.Image)
+		if c.Checked {
+			im = append(im, i.Image)
 		}
 	}
-	return im
-}
-func (t *ImageSelectionTable) Substitue(indice int, img *canvas.Image) {
-	if indice >= len(t.images) {
-		return
-	}
-	t.images[indice] = img
-	t.Refresh()
-	canvas.Refresh(t)
-}
 
-func (t *ImageSelectionTable) Remove(pos int) {
-	t.images = append(t.images[:pos], t.images[pos+1:]...)
-	t.Refresh()
-	canvas.Refresh(t)
+	return im
 }
 
 func (t *ImageSelectionTable) Reset() {
-	t.images = make([]*canvas.Image, 0)
-	t.selected = make([]bool, 0)
-	canvas.Refresh(t)
-}
-
-func (t *ImageSelectionTable) onSelect(id widget.TableCellID) {
-	t.selected[id.Col] = !t.selected[id.Col]
+	t.Container.Objects = t.Container.Objects[:0]
 	t.Refresh()
 	canvas.Refresh(t)
 }
 
 func (t *ImageSelectionTable) Append(img *canvas.Image) {
-	t.images = append(t.images, img)
-	t.selected = append(t.selected, true)
+	t.Add(NewCheckedImageWithImage(img, t.size))
 	t.Refresh()
 	canvas.Refresh(t)
-}
-
-func (t *ImageSelectionTable) MinSize() fyne.Size {
-	return fyne.NewSize(t.size.Width, t.size.Height+t.size.Width)
-}
-
-func (t *ImageSelectionTable) createCell() fyne.CanvasObject {
-	icon := widget.NewIcon(nil)
-	c := container.NewGridWrap(t.size, emptyCell(t.size), icon)
-	return c
-}
-
-func (t *ImageSelectionTable) updateCell(id widget.TableCellID, o fyne.CanvasObject) {
-	i := o.(*fyne.Container).Objects[0].(*canvas.Image)
-	c := o.(*fyne.Container).Objects[1].(*widget.Icon)
-
-	switch id.Row {
-	case 0:
-		c.Hide()
-		i.Image = t.images[id.Col].Image
-		i.Show()
-	case 1:
-		if t.selected[id.Col] {
-			c.SetResource(theme.ConfirmIcon())
-		} else {
-			c.SetResource(theme.CancelIcon())
-		}
-		c.Show()
-	}
-}
-
-func (t *ImageSelectionTable) length() (int, int) {
-	return 2, len(t.images)
 }

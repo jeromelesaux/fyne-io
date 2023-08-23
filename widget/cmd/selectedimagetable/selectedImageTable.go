@@ -25,8 +25,11 @@ func main() {
 	t := ui.NewImageSelectionTableWithImages(imgs, fyne.NewSize(size, size))
 	w.SetContent(
 		container.New(
+
 			layout.NewAdaptiveGridLayout(2),
+
 			container.New(layout.NewGridLayoutWithRows(3),
+
 				container.New(
 					layout.NewAdaptiveGridLayout(1),
 					widget.NewButton("append", func() {
@@ -39,10 +42,16 @@ func main() {
 						fmt.Println("nb selected images", len(t.Images()))
 					}),
 				),
+				container.New(
+					layout.NewAdaptiveGridLayout(1),
+					widget.NewButton("reset", func() {
+						t.Reset()
+					}),
+				),
 			),
 
 			container.NewScroll(
-				t,
+				t.Container,
 			),
 		),
 	)
