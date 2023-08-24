@@ -63,7 +63,7 @@ type ImageSelectionTable struct {
 func NewImageSelectionTable(size fyne.Size) *ImageSelectionTable {
 	t := &ImageSelectionTable{
 		size:      size,
-		Container: container.NewAdaptiveGrid(8),
+		Container: container.NewGridWithColumns(0),
 	}
 	return t
 
@@ -71,7 +71,7 @@ func NewImageSelectionTable(size fyne.Size) *ImageSelectionTable {
 
 func NewImageSelectionTableWithImages(imgs []image.Image, size fyne.Size) *ImageSelectionTable {
 	t := &ImageSelectionTable{
-		Container: container.NewAdaptiveGrid(8),
+		Container: container.NewGridWithColumns(0),
 		size:      size,
 	}
 
@@ -103,6 +103,7 @@ func (t *ImageSelectionTable) Reset() {
 }
 
 func (t *ImageSelectionTable) Append(img *canvas.Image) {
+	t.Layout = (container.NewGridWithColumns(len(t.Objects) + 1)).Layout
 	t.Add(NewCheckedImageWithImage(img, t.size))
 	t.Refresh()
 	canvas.Refresh(t)
