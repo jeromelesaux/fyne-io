@@ -15,7 +15,7 @@ import (
 	ui "github.com/jeromelesaux/fyne-io/widget"
 )
 
-var size float32 = 70.
+var size float32 = 150.
 
 func main() {
 	a := app.New()

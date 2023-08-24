@@ -22,6 +22,7 @@ func (c *CheckedImage) tapped(b bool) {
 }
 
 func NewCheckedImageWithImage(i *canvas.Image, s fyne.Size) *fyne.Container {
+	i.SetMinSize(s)
 	c := &CheckedImage{
 		Selected: true,
 		i:        i,
@@ -31,28 +32,34 @@ func NewCheckedImageWithImage(i *canvas.Image, s fyne.Size) *fyne.Container {
 	cb := widget.NewCheck("", c.tapped)
 	cb.SetChecked(true)
 	c.c = cb
-	return container.New(
+	ct := container.New(
 		layout.NewMaxLayout(),
 		c.i,
 		c.c,
 	)
+	ct.Resize(s)
+	return ct
 }
 
 func NewCheckedImage(s fyne.Size) *fyne.Container {
+	i := emptyCell(s)
+	i.SetMinSize(s)
 	c := &CheckedImage{
 		Selected: true,
-		i:        emptyCell(s),
+		i:        i,
 		s:        s,
 	}
 
 	cb := widget.NewCheck("", c.tapped)
 	cb.SetChecked(true)
 	c.c = cb
-	return container.New(
+	ct := container.New(
 		layout.NewMaxLayout(),
 		c.i,
 		c.c,
 	)
+	ct.Resize(s)
+	return ct
 }
 
 type ImageSelectionTable struct {
@@ -63,7 +70,7 @@ type ImageSelectionTable struct {
 func NewImageSelectionTable(size fyne.Size) *ImageSelectionTable {
 	t := &ImageSelectionTable{
 		size:      size,
-		Container: container.NewGridWithColumns(0),
+		Container: container.NewHBox(),
 	}
 	return t
 
@@ -71,7 +78,7 @@ func NewImageSelectionTable(size fyne.Size) *ImageSelectionTable {
 
 func NewImageSelectionTableWithImages(imgs []image.Image, size fyne.Size) *ImageSelectionTable {
 	t := &ImageSelectionTable{
-		Container: container.NewGridWithColumns(0),
+		Container: container.NewHBox(),
 		size:      size,
 	}
 
@@ -103,8 +110,9 @@ func (t *ImageSelectionTable) Reset() {
 }
 
 func (t *ImageSelectionTable) Append(img *canvas.Image) {
-	t.Layout = (container.NewGridWithColumns(len(t.Objects) + 1)).Layout
-	t.Add(NewCheckedImageWithImage(img, t.size))
+	i := NewCheckedImageWithImage(img, t.size)
+
+	t.Add(i)
 	t.Refresh()
 	canvas.Refresh(t)
 }
