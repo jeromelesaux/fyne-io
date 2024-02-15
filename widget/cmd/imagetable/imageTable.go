@@ -65,6 +65,7 @@ func indexSelected(row, col int) {
 	fmt.Printf("row;%d,col:%d\n", row, col)
 }
 
+// nolint: unused, deadcode
 func NewNumImagesCollection(nbRows, nbCols int) *ui.ImageTableCache {
 	images := ui.NewImageTableCache(nbRows, nbCols, fyne.NewSize(50., 50.))
 	for i := 0; i < nbRows; i++ {

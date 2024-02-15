@@ -72,6 +72,7 @@ func OpenFyne() image.Image {
 	return img
 }
 
+// nolint: unused, deadcode
 func OpenImage() image.Image {
 	f, err := os.Open("image.png")
 	if err != nil {

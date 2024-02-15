@@ -182,6 +182,7 @@ func (i *ImageTable) Reset() {
 	canvas.Refresh(i)
 }
 
+// nolint: ireturn
 func (i *ImageTable) ImageCreate() fyne.CanvasObject {
 	img := image.NewRGBA(image.Rectangle{image.Point{0, 0}, image.Point{int(i.Size().Width), int(i.Size().Width)}})
 	r := canvas.NewImageFromImage(img)

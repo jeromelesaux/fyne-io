@@ -43,6 +43,7 @@ func (p *PaletteTable) PaletteLength() (int, int) {
 	return 1, len(p.Palette)
 }
 
+// nolint: ireturn
 func (p *PaletteTable) PaletteCreate() fyne.CanvasObject {
 	r := canvas.NewRectangle(color.White)
 	r.SetMinSize(fyne.NewSize(30, 30))
