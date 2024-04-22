@@ -13,6 +13,10 @@ import (
 	"fyne.io/fyne/v2/widget"
 )
 
+var (
+	default20x20Size = fyne.NewSize(20, 20)
+)
+
 type Magnify struct {
 	Value        int
 	WidthPixels  int
@@ -50,17 +54,18 @@ type Editor struct {
 	pi   int           // color position in current palette
 	csii *canvas.Image // current selected color available
 	pci  int           // color position in current available colors
-
-	o *canvas.Image
-	m *PixelsMap // pixels  map pointer
+	pt   *widget.Table
+	o    *canvas.Image
+	m    *PixelsMap // pixels  map pointer
 }
 
 func (e *Editor) setPaletteColor() {
-	e.csi.Image = fillImageColor(e.p[e.pi], fyne.NewSize(20, 20))
+	e.csi.Image = fillImageColor(e.p[e.pi], default20x20Size)
+	e.csi.Refresh()
 }
 
 func (e *Editor) setSelectedAvailableColor() {
-	e.csii.Image = fillImageColor(e.c[e.pci], fyne.NewSize(20, 20))
+	e.csii.Image = fillImageColor(e.c[e.pci], default20x20Size)
 }
 
 func (e *Editor) setImagePortion() {
@@ -104,7 +109,6 @@ func (e *Editor) selectColorPalette(id widget.TableCellID) {
 	e.pi = y + (x * 64)
 	e.m.SetColor(e.c[y])
 	e.setPaletteColor()
-	e.csi.Refresh()
 }
 
 func (e *Editor) selectAvailableColor(id widget.TableCellID) {
@@ -114,6 +118,13 @@ func (e *Editor) selectAvailableColor(id widget.TableCellID) {
 	c := e.c[y]
 	e.p[e.pi] = c
 	e.setSelectedAvailableColor()
+
+	cell := canvas.NewImageFromImage(fillImageColor(e.p[e.pi], fyne.NewSize(5, 5)))
+	cell.SetMinSize(default20x20Size)
+	e.pt.UpdateCell(id, cell)
+	e.pt.Refresh()
+
+	e.setPaletteColor()
 	e.csii.Refresh()
 }
 
@@ -126,8 +137,8 @@ func NewEditor(i image.Image, m Magnify, p color.Palette, ca color.Palette) *Edi
 		c:    ca,
 		ip:   make([][]color.Color, m.HeightPixels),
 		o:    canvas.NewImageFromImage(i),
-		csi:  canvas.NewImageFromImage(fillImageColor(color.Black, fyne.NewSize(20, 20))),
-		csii: canvas.NewImageFromImage(fillImageColor(color.Black, fyne.NewSize(20, 20))),
+		csi:  canvas.NewImageFromImage(fillImageColor(p[0], default20x20Size)),
+		csii: canvas.NewImageFromImage(fillImageColor(ca[0], default20x20Size)),
 	}
 	for i := 0; i < m.HeightPixels; i++ {
 		e.ip[i] = make([]color.Color, m.WidthPixels)
@@ -150,7 +161,7 @@ func (e *Editor) newDirectionsContainer() *fyne.Container {
 	)
 }
 
-func (e *Editor) newPaletteContainer(p color.Palette, sel func(id widget.TableCellID)) *fyne.Container {
+func (e *Editor) newPaletteContainer(p color.Palette, setTable func(t *widget.Table), sel func(id widget.TableCellID)) *fyne.Container {
 	t := widget.NewTable(func() (int, int) {
 		col := len(p) / 64
 		if col == 0 {
@@ -161,7 +172,7 @@ func (e *Editor) newPaletteContainer(p color.Palette, sel func(id widget.TableCe
 		return col, row
 	}, func() fyne.CanvasObject {
 		o := canvas.NewImageFromImage(fillImageColor(color.Black, fyne.NewSize(5, 5)))
-		o.SetMinSize(fyne.NewSize(20, 20))
+		o.SetMinSize(default20x20Size)
 		return o
 	}, func(id widget.TableCellID, cell fyne.CanvasObject) {
 		y := id.Col
@@ -170,10 +181,20 @@ func (e *Editor) newPaletteContainer(p color.Palette, sel func(id widget.TableCe
 		cell.Refresh()
 	})
 	t.OnSelected = sel
+	if setTable != nil {
+		setTable(t)
+	}
+
 	return container.New(
 		layout.NewGridLayout(1),
 		t,
 	)
+}
+
+func (e *Editor) applyMagnify() {}
+
+func (e *Editor) setPaletteTable(t *widget.Table) {
+	e.pt = t
 }
 
 func (e *Editor) NewEditor() *fyne.Container {
@@ -187,10 +208,10 @@ func (e *Editor) NewEditor() *fyne.Container {
 			e.o,
 		),
 		container.New(
-			layout.NewGridLayoutWithRows(7),
+			layout.NewGridLayoutWithRows(8),
 
 			widget.NewLabel("Your palette :"),
-			e.newPaletteContainer(e.p, e.selectColorPalette),
+			e.newPaletteContainer(e.p, e.setPaletteTable, e.selectColorPalette),
 			container.New(
 				layout.NewAdaptiveGridLayout(1),
 				widget.NewLabel("Selected color from your palette :"),
@@ -198,11 +219,28 @@ func (e *Editor) NewEditor() *fyne.Container {
 			),
 
 			widget.NewLabel("Color available :"),
-			e.newPaletteContainer(e.c, e.selectAvailableColor),
+			e.newPaletteContainer(e.c, nil, e.selectAvailableColor),
 			container.New(
 				layout.NewAdaptiveGridLayout(1),
 				widget.NewLabel("Selected color from available colors :"),
 				e.csii,
+			),
+			container.New(
+				layout.NewGridLayoutWithColumns(2),
+				widget.NewLabel("Magnify :"),
+				widget.NewSelect([]string{"x2", "x4", "x8"}, func(s string) {
+					switch s {
+					case "x2":
+						e.mg = MagnifyX2
+					case "x4":
+						e.mg = MagnifyX4
+					case "x8":
+						e.mg = MagnifyX8
+					default:
+						return
+					}
+					e.applyMagnify()
+				}),
 			),
 			e.newDirectionsContainer(),
 		),
