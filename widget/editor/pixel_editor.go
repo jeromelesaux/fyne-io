@@ -46,12 +46,21 @@ type Editor struct {
 	px int             // position in X from the original image
 	py int             // position in Y from the original image
 
-	// Editor widgets
-	up    *widget.Button // go upper in the original image
-	down  *widget.Button // go down in the original image
-	right *widget.Button // go right
-	left  *widget.Button // go left
-	m     *PixelsMap     // pixels  map pointer
+	csi  *canvas.Image // current selected color in palette
+	pi   int           // color position in current palette
+	csii *canvas.Image // current selected color available
+	pci  int           // color position in current available colors
+
+	o *canvas.Image
+	m *PixelsMap // pixels  map pointer
+}
+
+func (e *Editor) setPaletteColor() {
+	e.csi.Image = fillImageColor(e.p[e.pi], fyne.NewSize(20, 20))
+}
+
+func (e *Editor) setSelectedAvailableColor() {
+	e.csii.Image = fillImageColor(e.c[e.pci], fyne.NewSize(20, 20))
 }
 
 func (e *Editor) setImagePortion() {
@@ -65,30 +74,60 @@ func (e *Editor) setImagePortion() {
 }
 
 func (e *Editor) goUp() {
-
+	if e.py > 0 {
+		e.py--
+	}
 }
 func (e *Editor) goDown() {
-
+	if e.py < e.oi.Bounds().Max.Y {
+		e.py++
+	}
 }
 func (e *Editor) goLeft() {
-
+	if e.px > 0 {
+		e.px--
+	}
 }
 func (e *Editor) goRight() {
-
+	if e.px < e.oi.Bounds().Max.X {
+		e.px++
+	}
 }
 
 func (e *Editor) setColor(x, y int, c color.Color) {
+	e.oi.(*image.RGBA).Set(x, y, c)
+}
 
+func (e *Editor) selectColorPalette(id widget.TableCellID) {
+	y := id.Col
+	x := id.Row
+	e.pi = y + (x * 64)
+	e.m.SetColor(e.c[y])
+	e.setPaletteColor()
+	e.csi.Refresh()
+}
+
+func (e *Editor) selectAvailableColor(id widget.TableCellID) {
+	y := id.Col
+	x := id.Row
+	e.pci = y + (x * 64)
+	c := e.c[y]
+	e.p[e.pi] = c
+	e.setSelectedAvailableColor()
+	e.csii.Refresh()
 }
 
 func NewEditor(i image.Image, m Magnify, p color.Palette, ca color.Palette) *Editor {
 
 	e := &Editor{
-		oi: i,
-		mg: m,
-		p:  p,
-		c:  ca,
-		ip: make([][]color.Color, m.HeightPixels),
+		oi:   i,
+		mg:   m,
+		p:    p,
+		c:    ca,
+		ip:   make([][]color.Color, m.HeightPixels),
+		o:    canvas.NewImageFromImage(i),
+		csi:  canvas.NewImageFromImage(fillImageColor(color.Black, fyne.NewSize(20, 20))),
+		csii: canvas.NewImageFromImage(fillImageColor(color.Black, fyne.NewSize(20, 20))),
 	}
 	for i := 0; i < m.HeightPixels; i++ {
 		e.ip[i] = make([]color.Color, m.WidthPixels)
@@ -99,19 +138,41 @@ func NewEditor(i image.Image, m Magnify, p color.Palette, ca color.Palette) *Edi
 }
 
 func (e *Editor) newDirectionsContainer() *fyne.Container {
-	e.up = widget.NewButtonWithIcon("UP", theme.MoveUpIcon(), e.goUp)
-	e.down = widget.NewButtonWithIcon("DOWN", theme.MoveDownIcon(), e.goDown)
-	e.left = widget.NewButtonWithIcon("LEFT", theme.NavigateBackIcon(), e.goLeft)
-	e.right = widget.NewButtonWithIcon("LEFT", theme.NavigateNextIcon(), e.goRight)
 	return container.New(
 		layout.NewAdaptiveGridLayout(3),
-		e.left,
+		widget.NewButtonWithIcon("LEFT", theme.NavigateBackIcon(), e.goLeft),
 		container.New(
 			layout.NewAdaptiveGridLayout(1),
-			e.up,
-			e.down,
+			widget.NewButtonWithIcon("UP", theme.MoveUpIcon(), e.goUp),
+			widget.NewButtonWithIcon("DOWN", theme.MoveDownIcon(), e.goDown),
 		),
-		e.right,
+		widget.NewButtonWithIcon("RIGHT", theme.NavigateNextIcon(), e.goRight),
+	)
+}
+
+func (e *Editor) newPaletteContainer(p color.Palette, sel func(id widget.TableCellID)) *fyne.Container {
+	t := widget.NewTable(func() (int, int) {
+		col := len(p) / 64
+		if col == 0 {
+			col = 1
+		}
+		row := len(p) % 64
+
+		return col, row
+	}, func() fyne.CanvasObject {
+		o := canvas.NewImageFromImage(fillImageColor(color.Black, fyne.NewSize(5, 5)))
+		o.SetMinSize(fyne.NewSize(20, 20))
+		return o
+	}, func(id widget.TableCellID, cell fyne.CanvasObject) {
+		y := id.Col
+
+		cell.(*canvas.Image).Image = fillImageColor(p[y], fyne.NewSize(5, 5))
+		cell.Refresh()
+	})
+	t.OnSelected = sel
+	return container.New(
+		layout.NewGridLayout(1),
+		t,
 	)
 }
 
@@ -121,7 +182,27 @@ func (e *Editor) NewEditor() *fyne.Container {
 		layout.NewGridLayoutWithColumns(2),
 
 		e.m.NewPixelsMap(),
-		e.newDirectionsContainer(),
+		container.New(
+			layout.NewGridLayoutWithRows(8),
+			e.o,
+
+			widget.NewLabel("Your palette :"),
+			e.newPaletteContainer(e.p, e.selectColorPalette),
+			container.New(
+				layout.NewAdaptiveGridLayout(1),
+				widget.NewLabel("Selected color from your palette :"),
+				e.csi,
+			),
+
+			widget.NewLabel("Color available :"),
+			e.newPaletteContainer(e.c, e.selectAvailableColor),
+			container.New(
+				layout.NewAdaptiveGridLayout(1),
+				widget.NewLabel("Selected color from available colors :"),
+				e.csii,
+			),
+			e.newDirectionsContainer(),
+		),
 	)
 }
 
@@ -157,7 +238,7 @@ func fillImageColor(c color.Color, s fyne.Size) image.Image {
 
 func (p *PixelsMap) createCell() fyne.CanvasObject {
 	o := canvas.NewImageFromImage(fillImageColor(color.Black, p.sz))
-	o.SetMinSize(fyne.NewSize(8, 8))
+	o.SetMinSize(fyne.NewSize(7, 7))
 	return o
 }
 
