@@ -18,6 +18,7 @@ var (
 )
 
 type Magnify struct {
+	Display      float32
 	Value        int
 	WidthPixels  int
 	HeightPixels int
@@ -25,16 +26,19 @@ type Magnify struct {
 
 var (
 	MagnifyX2 = Magnify{
+		Display:      7,
 		Value:        2,
 		WidthPixels:  64,
 		HeightPixels: 64,
 	}
 	MagnifyX4 = Magnify{
+		Display:      15,
 		Value:        4,
 		WidthPixels:  32,
 		HeightPixels: 32,
 	}
 	MagnifyX8 = Magnify{
+		Display:      25,
 		Value:        8,
 		WidthPixels:  16,
 		HeightPixels: 16,
@@ -82,21 +86,29 @@ func (e *Editor) goUp() {
 	if e.py > 0 {
 		e.py--
 	}
+	e.applyMagnify()
+	e.m.px.Refresh()
 }
 func (e *Editor) goDown() {
 	if e.py < e.oi.Bounds().Max.Y {
 		e.py++
 	}
+	e.applyMagnify()
+	e.m.px.Refresh()
 }
 func (e *Editor) goLeft() {
 	if e.px > 0 {
 		e.px--
 	}
+	e.applyMagnify()
+	e.m.px.Refresh()
 }
 func (e *Editor) goRight() {
 	if e.px < e.oi.Bounds().Max.X {
 		e.px++
 	}
+	e.applyMagnify()
+	e.m.px.Refresh()
 }
 
 func (e *Editor) setColor(x, y int, c color.Color) {
@@ -107,7 +119,7 @@ func (e *Editor) selectColorPalette(id widget.TableCellID) {
 	y := id.Col
 	x := id.Row
 	e.pi = y + (x * 64)
-	e.m.SetColor(e.c[y])
+	e.m.SetColor(e.p[y])
 	e.setPaletteColor()
 }
 
@@ -121,6 +133,10 @@ func (e *Editor) selectAvailableColor(id widget.TableCellID) {
 
 	cell := canvas.NewImageFromImage(fillImageColor(e.p[e.pi], fyne.NewSize(5, 5)))
 	cell.SetMinSize(default20x20Size)
+	id = widget.TableCellID{
+		Row: 0,
+		Col: e.pi,
+	}
 	e.pt.UpdateCell(id, cell)
 	e.pt.Refresh()
 
@@ -191,7 +207,15 @@ func (e *Editor) newPaletteContainer(p color.Palette, setTable func(t *widget.Ta
 	)
 }
 
-func (e *Editor) applyMagnify() {}
+func (e *Editor) applyMagnify() {
+	// modify the size of ip
+	e.ip = e.ip[0:e.mg.HeightPixels]
+	for i := 0; i < e.mg.HeightPixels; i++ {
+		e.ip[i] = e.ip[i][0:e.mg.WidthPixels]
+	}
+	e.m.SetMagnify(e.mg)
+	e.setImagePortion()
+}
 
 func (e *Editor) setPaletteTable(t *widget.Table) {
 	e.pt = t
@@ -264,6 +288,10 @@ func (p *PixelsMap) SetColor(c color.Color) {
 	p.sc = c
 }
 
+func (p *PixelsMap) SetMagnify(m Magnify) {
+	p.mg = m
+}
+
 func (p *PixelsMap) length() (int, int) {
 	return p.mg.HeightPixels, p.mg.WidthPixels
 }
@@ -279,7 +307,7 @@ func fillImageColor(c color.Color, s fyne.Size) image.Image {
 
 func (p *PixelsMap) createCell() fyne.CanvasObject {
 	o := canvas.NewImageFromImage(fillImageColor(color.Black, p.sz))
-	o.SetMinSize(fyne.NewSize(7, 7))
+	o.SetMinSize(fyne.NewSize(p.mg.Display, p.mg.Display))
 	return o
 }
 
