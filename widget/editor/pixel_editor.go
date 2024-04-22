@@ -86,25 +86,25 @@ func (e *Editor) goUp() {
 	if e.py > 0 {
 		e.py--
 	}
-	e.applyMagnify()
+	e.applyMove()
 }
 func (e *Editor) goDown() {
 	if e.py < e.oi.Bounds().Max.Y {
 		e.py++
 	}
-	e.applyMagnify()
+	e.applyMove()
 }
 func (e *Editor) goLeft() {
 	if e.px > 0 {
 		e.px--
 	}
-	e.applyMagnify()
+	e.applyMove()
 }
 func (e *Editor) goRight() {
 	if e.px < e.oi.Bounds().Max.X {
 		e.px++
 	}
-	e.applyMagnify()
+	e.applyMove()
 }
 
 func (e *Editor) setColor(x, y int, c color.Color) {
@@ -203,17 +203,22 @@ func (e *Editor) newPaletteContainer(p color.Palette, setTable func(t *widget.Ta
 	)
 }
 
-func (e *Editor) SquareSelect() {
-	r := image.Rectangle{Min: image.Point{X: e.px, Y: e.py},
-		Max: image.Point{X: e.px + e.mg.WidthPixels, Y: e.py + e.mg.HeightPixels}}
+func (e *Editor) squareSelect() {
 	i := image.NewNRGBA(e.oi.Bounds())
 	draw.Draw(i, i.Bounds(), e.oi, image.Point{0, 0}, draw.Src)
-	draw.Draw(i, r, &image.Uniform{color.Black}, image.Point{0, 0}, draw.Src)
+	for x := e.px; x < e.px+e.mg.WidthPixels; x++ {
+		i.Set(x, e.py, color.Black)
+		i.Set(x, e.py+e.mg.HeightPixels, color.Black)
+	}
+	for y := e.py; y < e.py+e.mg.HeightPixels; y++ {
+		i.Set(e.px, y, color.Black)
+		i.Set(e.px+e.mg.WidthPixels, y, color.Black)
+	}
 	e.o.Image = i
 	e.o.Refresh()
 }
 
-func (e *Editor) applyMagnify() {
+func (e *Editor) applyMove() {
 	// modify the size of ip
 	e.ip = e.ip[0:e.mg.WidthPixels]
 	for i := 0; i < e.mg.WidthPixels; i++ {
@@ -222,7 +227,7 @@ func (e *Editor) applyMagnify() {
 	e.m.SetMagnify(e.mg)
 	e.setImagePortion()
 	e.m.px.Refresh()
-	e.SquareSelect()
+	e.squareSelect()
 }
 
 func (e *Editor) setPaletteTable(t *widget.Table) {
@@ -271,7 +276,7 @@ func (e *Editor) NewEditor() *fyne.Container {
 					default:
 						return
 					}
-					e.applyMagnify()
+					e.applyMove()
 				}),
 			),
 			e.newDirectionsContainer(),
