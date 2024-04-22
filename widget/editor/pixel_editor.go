@@ -95,7 +95,7 @@ func (e *Editor) goRight() {
 }
 
 func (e *Editor) setColor(x, y int, c color.Color) {
-	e.oi.(*image.RGBA).Set(x, y, c)
+	e.oi.(*image.NRGBA).Set(e.px+x, e.py+y, c)
 }
 
 func (e *Editor) selectColorPalette(id widget.TableCellID) {
@@ -181,10 +181,13 @@ func (e *Editor) NewEditor() *fyne.Container {
 	return container.New(
 		layout.NewGridLayoutWithColumns(2),
 
-		e.m.NewPixelsMap(),
 		container.New(
-			layout.NewGridLayoutWithRows(8),
+			layout.NewGridLayoutWithRows(2),
+			e.m.NewPixelsMap(),
 			e.o,
+		),
+		container.New(
+			layout.NewGridLayoutWithRows(7),
 
 			widget.NewLabel("Your palette :"),
 			e.newPaletteContainer(e.p, e.selectColorPalette),
