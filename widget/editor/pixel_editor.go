@@ -15,6 +15,7 @@ import (
 
 var (
 	default20x20Size = fyne.NewSize(20, 20)
+	default10x10Size = fyne.NewSize(10, 10)
 )
 
 type Magnify struct {
@@ -123,7 +124,7 @@ func (e *Editor) selectAvailableColor(id widget.TableCellID) {
 	y := id.Col
 	x := id.Row
 	e.pci = y + (x * 64)
-	c := e.c[y]
+	c := e.c[e.pci]
 	e.p[e.pi] = c
 	e.setSelectedAvailableColor()
 
@@ -180,16 +181,22 @@ func (e *Editor) newPaletteContainer(p color.Palette, setTable func(t *widget.Ta
 			col = 1
 		}
 		row := len(p) % 64
-
+		if row == 0 {
+			row = 64
+		}
 		return col, row
 	}, func() fyne.CanvasObject {
 		o := canvas.NewImageFromImage(fillImageColor(color.Black, fyne.NewSize(5, 5)))
-		o.SetMinSize(default20x20Size)
+		if len(p) > 64 {
+			o.SetMinSize(default10x10Size)
+		} else {
+			o.SetMinSize(default20x20Size)
+		}
 		return o
 	}, func(id widget.TableCellID, cell fyne.CanvasObject) {
 		y := id.Col
-
-		cell.(*canvas.Image).Image = fillImageColor(p[y], fyne.NewSize(5, 5))
+		x := id.Row
+		cell.(*canvas.Image).Image = fillImageColor(p[y+(x*64)], fyne.NewSize(5, 5))
 		cell.Refresh()
 	})
 	t.OnSelected = sel
