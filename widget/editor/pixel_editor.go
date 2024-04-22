@@ -76,7 +76,7 @@ func (e *Editor) setImagePortion() {
 	for y := 0; y < e.mg.HeightPixels; y++ {
 		for x := 0; x < e.mg.WidthPixels; x++ {
 			c := e.oi.At(e.px+x, e.py+y)
-			e.ip[y][x] = c
+			e.ip[x][y] = c
 		}
 	}
 	e.m.SetColors(e.ip)
@@ -87,28 +87,24 @@ func (e *Editor) goUp() {
 		e.py--
 	}
 	e.applyMagnify()
-	e.m.px.Refresh()
 }
 func (e *Editor) goDown() {
 	if e.py < e.oi.Bounds().Max.Y {
 		e.py++
 	}
 	e.applyMagnify()
-	e.m.px.Refresh()
 }
 func (e *Editor) goLeft() {
 	if e.px > 0 {
 		e.px--
 	}
 	e.applyMagnify()
-	e.m.px.Refresh()
 }
 func (e *Editor) goRight() {
 	if e.px < e.oi.Bounds().Max.X {
 		e.px++
 	}
 	e.applyMagnify()
-	e.m.px.Refresh()
 }
 
 func (e *Editor) setColor(x, y int, c color.Color) {
@@ -151,13 +147,13 @@ func NewEditor(i image.Image, m Magnify, p color.Palette, ca color.Palette) *Edi
 		mg:   m,
 		p:    p,
 		c:    ca,
-		ip:   make([][]color.Color, m.HeightPixels),
+		ip:   make([][]color.Color, m.WidthPixels),
 		o:    canvas.NewImageFromImage(i),
 		csi:  canvas.NewImageFromImage(fillImageColor(p[0], default20x20Size)),
 		csii: canvas.NewImageFromImage(fillImageColor(ca[0], default20x20Size)),
 	}
-	for i := 0; i < m.HeightPixels; i++ {
-		e.ip[i] = make([]color.Color, m.WidthPixels)
+	for i := 0; i < m.WidthPixels; i++ {
+		e.ip[i] = make([]color.Color, m.HeightPixels)
 	}
 	e.m = NewPixelsMap(e.mg, fyne.NewSize(5, 5), e.setColor)
 	e.setImagePortion()
@@ -207,14 +203,26 @@ func (e *Editor) newPaletteContainer(p color.Palette, setTable func(t *widget.Ta
 	)
 }
 
+func (e *Editor) SquareSelect() {
+	r := image.Rectangle{Min: image.Point{X: e.px, Y: e.py},
+		Max: image.Point{X: e.px + e.mg.WidthPixels, Y: e.py + e.mg.HeightPixels}}
+	i := image.NewNRGBA(e.oi.Bounds())
+	draw.Draw(i, i.Bounds(), e.oi, image.Point{0, 0}, draw.Src)
+	draw.Draw(i, r, &image.Uniform{color.Black}, image.Point{0, 0}, draw.Src)
+	e.o.Image = i
+	e.o.Refresh()
+}
+
 func (e *Editor) applyMagnify() {
 	// modify the size of ip
-	e.ip = e.ip[0:e.mg.HeightPixels]
-	for i := 0; i < e.mg.HeightPixels; i++ {
-		e.ip[i] = e.ip[i][0:e.mg.WidthPixels]
+	e.ip = e.ip[0:e.mg.WidthPixels]
+	for i := 0; i < e.mg.WidthPixels; i++ {
+		e.ip[i] = e.ip[i][0:e.mg.HeightPixels]
 	}
 	e.m.SetMagnify(e.mg)
 	e.setImagePortion()
+	e.m.px.Refresh()
+	e.SquareSelect()
 }
 
 func (e *Editor) setPaletteTable(t *widget.Table) {
