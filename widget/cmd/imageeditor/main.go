@@ -3,6 +3,7 @@ package main
 import (
 	"image"
 	"image/color"
+	"image/png"
 	"os"
 
 	"fyne.io/fyne/v2"
@@ -22,9 +23,20 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	e := editor.NewEditor(i, editor.MagnifyX2, CpcOldPalette[0:8], NewCpcPlusPalette())
+	e := editor.NewEditor(i, editor.MagnifyX2, CpcOldPalette[0:8], NewCpcPlusPalette(), save, w)
 	w.SetContent(e.NewEditor())
 	w.ShowAndRun()
+}
+
+func save(i image.Image) {
+	f, err := os.Create("new.png")
+	if err != nil {
+		panic(err)
+	}
+	defer f.Close()
+	if err := png.Encode(f, i); err != nil {
+		panic(err)
+	}
 }
 
 func NewCpcPlusPalette() color.Palette {

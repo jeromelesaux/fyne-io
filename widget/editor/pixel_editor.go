@@ -60,8 +60,10 @@ type Editor struct {
 	csii *canvas.Image // current selected color available
 	pci  int           // color position in current available colors
 	pt   *widget.Table
-	o    *canvas.Image
+	o    *ClickableImage
 	m    *PixelsMap // pixels  map pointer
+	w    fyne.Window
+	s    func(i image.Image)
 }
 
 func (e *Editor) setPaletteColor() {
@@ -126,6 +128,7 @@ func (e *Editor) selectAvailableColor(id widget.TableCellID) {
 	e.pci = y + (x * 64)
 	c := e.c[e.pci]
 	e.p[e.pi] = c
+	e.m.SetColor(e.p[e.pi])
 	e.setSelectedAvailableColor()
 
 	cell := canvas.NewImageFromImage(fillImageColor(e.p[e.pi], fyne.NewSize(5, 5)))
@@ -141,7 +144,13 @@ func (e *Editor) selectAvailableColor(id widget.TableCellID) {
 	e.csii.Refresh()
 }
 
-func NewEditor(i image.Image, m Magnify, p color.Palette, ca color.Palette) *Editor {
+func (e *Editor) posSquareSelect(x, y float32) {
+	e.px = int(x)
+	e.py = int(y)
+	e.applyMove()
+}
+
+func NewEditor(i image.Image, m Magnify, p color.Palette, ca color.Palette, s func(image.Image), w fyne.Window) *Editor {
 
 	e := &Editor{
 		oi:   i,
@@ -149,10 +158,12 @@ func NewEditor(i image.Image, m Magnify, p color.Palette, ca color.Palette) *Edi
 		p:    p,
 		c:    ca,
 		ip:   make([][]color.Color, m.WidthPixels),
-		o:    canvas.NewImageFromImage(i),
 		csi:  canvas.NewImageFromImage(fillImageColor(p[0], default20x20Size)),
 		csii: canvas.NewImageFromImage(fillImageColor(ca[0], default20x20Size)),
+		s:    s,
+		w:    w,
 	}
+	e.o = NewClickableImage(e.oi, e.posSquareSelect)
 	for i := 0; i < m.WidthPixels; i++ {
 		e.ip[i] = make([]color.Color, m.HeightPixels)
 	}
@@ -221,7 +232,7 @@ func (e *Editor) squareSelect() {
 		i.Set(e.px, y, color.Black)
 		i.Set(e.px+e.mg.WidthPixels, y, color.Black)
 	}
-	e.o.Image = i
+	e.o.SetImage(i)
 	e.o.Refresh()
 }
 
@@ -252,7 +263,7 @@ func (e *Editor) NewEditor() *fyne.Container {
 			e.o,
 		),
 		container.New(
-			layout.NewGridLayoutWithRows(8),
+			layout.NewGridLayoutWithRows(9),
 
 			widget.NewLabel("Your palette :"),
 			e.newPaletteContainer(e.p, e.setPaletteTable, e.selectColorPalette),
@@ -287,9 +298,23 @@ func (e *Editor) NewEditor() *fyne.Container {
 				}),
 			),
 			e.newDirectionsContainer(),
+			container.New(
+				layout.NewGridLayoutWithColumns(2),
+				widget.NewButtonWithIcon("Save", theme.FileImageIcon(), func() {
+					if e.s != nil {
+						e.s(e.oi)
+					}
+					e.w.Hide()
+				}),
+				widget.NewButtonWithIcon("Cancel", theme.CancelIcon(), func() { e.w.Hide() }),
+			),
 		),
 	)
 }
+
+/*
+ PixelsMap widget which displays pixels part of image
+*/
 
 type PixelsMap struct {
 	mg       Magnify
@@ -377,4 +402,78 @@ func NewPixelsMap(m Magnify, sz fyne.Size, s func(x, y int, c color.Color)) *Pix
 	}
 
 	return p
+}
+
+type ClickableImage struct {
+	*widget.Icon
+	i      *canvas.Image
+	tapped func(float32, float32)
+}
+
+func NewClickableImage(i image.Image, tapped func(float32, float32)) *ClickableImage {
+	c := &ClickableImage{
+		Icon:   &widget.Icon{},
+		i:      canvas.NewImageFromImage(i),
+		tapped: tapped,
+	}
+	c.ExtendBaseWidget(c)
+	return c
+}
+
+func (c *ClickableImage) SetImage(i image.Image) {
+	c.i.Image = i
+	c.i.Refresh()
+}
+
+func (c *ClickableImage) Tapped(pe *fyne.PointEvent) {
+	if c.tapped != nil {
+		x := pe.Position.X * float32(c.i.Image.Bounds().Max.X) / c.i.Size().Width
+		y := pe.Position.Y * float32(c.i.Image.Bounds().Max.Y) / c.i.Size().Height
+		(c.tapped)(x, y)
+	}
+}
+
+func (c *ClickableImage) TappedSecondary(_ *fyne.PointEvent) {
+
+}
+
+func (ci *ClickableImage) CreateRenderer() fyne.WidgetRenderer {
+	//ci.BaseWidget.ExtendBaseWidget(ci)
+	return &clickableImageRenderer{
+		image: ci.i,
+		objs:  []fyne.CanvasObject{ci.i},
+	}
+}
+
+func (ci *ClickableImage) Move(position fyne.Position) {
+	ci.Icon.Move(position)
+}
+
+type clickableImageRenderer struct {
+	image *canvas.Image
+	objs  []fyne.CanvasObject
+}
+
+func (ci *clickableImageRenderer) Destroy() {
+	ci.image = nil
+}
+
+func (ci *clickableImageRenderer) MinSize() fyne.Size {
+	return ci.image.MinSize()
+}
+
+func (ci *clickableImageRenderer) Objects() []fyne.CanvasObject {
+	return ci.objs
+}
+
+func (ci *clickableImageRenderer) Refresh() {
+	ci.image.Refresh()
+}
+
+func (ci *clickableImageRenderer) Layout(size fyne.Size) {
+	ci.image.Resize(size)
+}
+
+func (ci *clickableImageRenderer) Resize(size fyne.Size) {
+	ci.image.Resize(size)
 }
