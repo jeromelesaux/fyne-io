@@ -28,7 +28,7 @@ func main() {
 	w.ShowAndRun()
 }
 
-func save(i image.Image) {
+func save(i image.Image, p color.Palette) {
 	f, err := os.Create("new.png")
 	if err != nil {
 		panic(err)

@@ -63,7 +63,7 @@ type Editor struct {
 	pt   *widget.Table
 	o    *ClickableImage
 	m    *PixelsMap // pixels  map pointer
-	s    func(i image.Image)
+	sv   func(i image.Image, p color.Palette)
 }
 
 func (e *Editor) setPaletteColor() {
@@ -150,7 +150,7 @@ func (e *Editor) posSquareSelect(x, y float32) {
 	e.applyMove()
 }
 
-func NewEditor(i image.Image, m Magnify, p color.Palette, ca color.Palette, s func(image.Image)) *Editor {
+func NewEditor(i image.Image, m Magnify, p color.Palette, ca color.Palette, s func(image.Image, color.Palette)) *Editor {
 
 	e := &Editor{
 		oi:   i,
@@ -160,7 +160,7 @@ func NewEditor(i image.Image, m Magnify, p color.Palette, ca color.Palette, s fu
 		ip:   make([][]color.Color, m.WidthPixels),
 		csi:  canvas.NewImageFromImage(fillImageColor(p[0], default20x20Size)),
 		csii: canvas.NewImageFromImage(fillImageColor(ca[0], default20x20Size)),
-		s:    s,
+		sv:   s,
 	}
 	e.o = NewClickableImage(e.oi, e.posSquareSelect)
 	for i := 0; i < m.WidthPixels; i++ {
@@ -300,8 +300,8 @@ func (e *Editor) NewEditor() *fyne.Container {
 			container.New(
 				layout.NewGridLayoutWithColumns(2),
 				widget.NewButtonWithIcon("Save", theme.FileImageIcon(), func() {
-					if e.s != nil {
-						e.s(e.oi)
+					if e.sv != nil {
+						e.sv(e.oi, e.p)
 					}
 					e.co.Hide()
 				}),
