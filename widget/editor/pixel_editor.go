@@ -115,7 +115,7 @@ func (e *Editor) setColor(x, y int, c color.Color) {
 	case *image.NRGBA:
 		e.oi.(*image.NRGBA).Set(e.px+x, e.py+y, c)
 	case *image.RGBA:
-		e.oi.(*image.NRGBA).Set(e.px+x, e.py+y, c)
+		e.oi.(*image.RGBA).Set(e.px+x, e.py+y, c)
 	case *image.Alpha:
 		e.oi.(*image.Alpha).Set(e.px+x, e.py+y, c)
 	case *image.Alpha16:
@@ -167,6 +167,10 @@ func (e *Editor) posSquareSelect(x, y float32) {
 }
 
 func NewEditor(i image.Image, m Magnify, p color.Palette, ca color.Palette, s func(image.Image, color.Palette)) *Editor {
+
+	if len(p) == 0 {
+		p = append(p, color.Black, color.Black, color.Black, color.Black)
+	}
 
 	e := &Editor{
 		oi:   i,
