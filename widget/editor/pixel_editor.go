@@ -47,6 +47,7 @@ var (
 )
 
 type Editor struct {
+	co *fyne.Container
 	mg Magnify         // magnify used
 	p  color.Palette   // current palette used
 	c  color.Palette   // colors available
@@ -254,7 +255,7 @@ func (e *Editor) setPaletteTable(t *widget.Table) {
 
 func (e *Editor) NewEditor() *fyne.Container {
 
-	return container.New(
+	e.co = container.New(
 		layout.NewGridLayoutWithColumns(2),
 
 		container.New(
@@ -304,12 +305,13 @@ func (e *Editor) NewEditor() *fyne.Container {
 					if e.s != nil {
 						e.s(e.oi)
 					}
-					e.w.Hide()
+					e.co.Hide()
 				}),
-				widget.NewButtonWithIcon("Cancel", theme.CancelIcon(), func() { e.w.Hide() }),
+				widget.NewButtonWithIcon("Cancel", theme.CancelIcon(), func() { e.co.Hide() }),
 			),
 		),
 	)
+	return e.co
 }
 
 /*
