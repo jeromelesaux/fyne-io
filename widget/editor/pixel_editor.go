@@ -111,7 +111,23 @@ func (e *Editor) goRight() {
 }
 
 func (e *Editor) setColor(x, y int, c color.Color) {
-	e.oi.(*image.NRGBA).Set(e.px+x, e.py+y, c)
+	switch e.oi.(type) {
+	case *image.NRGBA:
+		e.oi.(*image.NRGBA).Set(e.px+x, e.py+y, c)
+	case *image.RGBA:
+		e.oi.(*image.NRGBA).Set(e.px+x, e.py+y, c)
+	case *image.Alpha:
+		e.oi.(*image.Alpha).Set(e.px+x, e.py+y, c)
+	case *image.Alpha16:
+		e.oi.(*image.Alpha16).Set(e.px+x, e.py+y, c)
+	case *image.RGBA64:
+		e.oi.(*image.RGBA64).Set(e.px+x, e.py+y, c)
+	case *image.NRGBA64:
+		e.oi.(*image.NRGBA64).Set(e.px+x, e.py+y, c)
+
+	default:
+		return
+	}
 }
 
 func (e *Editor) selectColorPalette(id widget.TableCellID) {
