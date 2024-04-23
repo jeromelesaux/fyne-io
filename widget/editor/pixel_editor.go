@@ -143,7 +143,20 @@ func (e *Editor) replaceOneColor(cOld, cNew color.Color) {
 		for y := 0; y < e.oi.Bounds().Max.Y; y++ {
 			c := e.oi.At(x, y)
 			if colorsAreEqual(c, cOld) {
-				e.setColor(x, y, cNew)
+				switch e.oi.(type) {
+				case *image.NRGBA:
+					e.oi.(*image.NRGBA).Set(x, y, cNew)
+				case *image.RGBA:
+					e.oi.(*image.RGBA).Set(x, y, cNew)
+				case *image.Alpha:
+					e.oi.(*image.Alpha).Set(x, y, cNew)
+				case *image.Alpha16:
+					e.oi.(*image.Alpha16).Set(x, y, cNew)
+				case *image.RGBA64:
+					e.oi.(*image.RGBA64).Set(x, y, cNew)
+				case *image.NRGBA64:
+					e.oi.(*image.NRGBA64).Set(x, y, cNew)
+				}
 			}
 		}
 	}

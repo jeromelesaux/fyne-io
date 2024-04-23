@@ -15,7 +15,7 @@ func main() {
 	a := app.New()
 	w := a.NewWindow("image table")
 	w.Resize(fyne.NewSize(900, 400))
-	f, err := os.Open("./image.png")
+	f, err := os.Open("./red.png")
 	if err != nil {
 		panic(err)
 	}
