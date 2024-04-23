@@ -63,7 +63,6 @@ type Editor struct {
 	pt   *widget.Table
 	o    *ClickableImage
 	m    *PixelsMap // pixels  map pointer
-	w    fyne.Window
 	s    func(i image.Image)
 }
 
@@ -151,7 +150,7 @@ func (e *Editor) posSquareSelect(x, y float32) {
 	e.applyMove()
 }
 
-func NewEditor(i image.Image, m Magnify, p color.Palette, ca color.Palette, s func(image.Image), w fyne.Window) *Editor {
+func NewEditor(i image.Image, m Magnify, p color.Palette, ca color.Palette, s func(image.Image)) *Editor {
 
 	e := &Editor{
 		oi:   i,
@@ -162,7 +161,6 @@ func NewEditor(i image.Image, m Magnify, p color.Palette, ca color.Palette, s fu
 		csi:  canvas.NewImageFromImage(fillImageColor(p[0], default20x20Size)),
 		csii: canvas.NewImageFromImage(fillImageColor(ca[0], default20x20Size)),
 		s:    s,
-		w:    w,
 	}
 	e.o = NewClickableImage(e.oi, e.posSquareSelect)
 	for i := 0; i < m.WidthPixels; i++ {
