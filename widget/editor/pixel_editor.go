@@ -89,25 +89,25 @@ func (e *Editor) goUp() {
 	if e.py > 0 {
 		e.py--
 	}
-	e.applyMove()
+	e.syncMap()
 }
 func (e *Editor) goDown() {
 	if e.py < e.oi.Bounds().Max.Y {
 		e.py++
 	}
-	e.applyMove()
+	e.syncMap()
 }
 func (e *Editor) goLeft() {
 	if e.px > 0 {
 		e.px--
 	}
-	e.applyMove()
+	e.syncMap()
 }
 func (e *Editor) goRight() {
 	if e.px < e.oi.Bounds().Max.X {
 		e.px++
 	}
-	e.applyMove()
+	e.syncMap()
 }
 
 func (e *Editor) setColor(x, y int, c color.Color) {
@@ -138,12 +138,41 @@ func (e *Editor) selectColorPalette(id widget.TableCellID) {
 	e.setPaletteColor()
 }
 
+func (e *Editor) replaceOneColor(cOld, cNew color.Color) {
+	for x := 0; x < e.oi.Bounds().Max.X; x++ {
+		for y := 0; y < e.oi.Bounds().Max.Y; y++ {
+			c := e.oi.At(x, y)
+			if colorsAreEqual(c, cOld) {
+				e.setColor(x, y, cNew)
+			}
+		}
+	}
+	e.syncMap()
+}
+
+func colorsAreEqual(c0, c1 color.Color) bool {
+	r0, g0, b0, _ := c0.RGBA()
+	r1, g1, b1, _ := c1.RGBA()
+	if r0 != r1 {
+		return false
+	}
+	if b0 != b1 {
+		return false
+	}
+	if g0 != g1 {
+		return false
+	}
+	return true
+}
+
 func (e *Editor) selectAvailableColor(id widget.TableCellID) {
 	y := id.Col
 	x := id.Row
 	e.pci = y + (x * 64)
 	c := e.c[e.pci]
+	c0 := e.p[e.pi]
 	e.p[e.pi] = c
+	e.replaceOneColor(c0, c) // replace all the initial color by the new one
 	e.m.SetColor(e.p[e.pi])
 	e.setSelectedAvailableColor()
 
@@ -163,7 +192,7 @@ func (e *Editor) selectAvailableColor(id widget.TableCellID) {
 func (e *Editor) posSquareSelect(x, y float32) {
 	e.px = int(x)
 	e.py = int(y)
-	e.applyMove()
+	e.syncMap()
 }
 
 func NewEditor(i image.Image, m Magnify, p color.Palette, ca color.Palette, s func(image.Image, color.Palette)) *Editor {
@@ -255,7 +284,7 @@ func (e *Editor) squareSelect() {
 	e.o.Refresh()
 }
 
-func (e *Editor) applyMove() {
+func (e *Editor) syncMap() {
 	// modify the size of ip
 	e.ip = e.ip[0:e.mg.WidthPixels]
 	for i := 0; i < e.mg.WidthPixels; i++ {
@@ -313,7 +342,7 @@ func (e *Editor) NewEditor() *fyne.Container {
 					default:
 						return
 					}
-					e.applyMove()
+					e.syncMap()
 				}),
 			),
 			e.newDirectionsContainer(),
