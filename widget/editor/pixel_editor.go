@@ -64,6 +64,30 @@ type Editor struct {
 	o    *ClickableImage
 	m    *PixelsMap // pixels  map pointer
 	sv   func(i image.Image, p color.Palette)
+	w    fyne.Window
+}
+
+func (e *Editor) onTypedKey(k *fyne.KeyEvent) {
+	switch k.Name {
+	case "Down":
+		e.goDown()
+	case "Up":
+		e.goUp()
+	case "Right":
+		e.goRight()
+	case "Left":
+		e.goLeft()
+	case "M":
+		switch e.mg {
+		case MagnifyX2:
+			e.mg = MagnifyX4
+		case MagnifyX4:
+			e.mg = MagnifyX8
+		case MagnifyX8:
+			e.mg = MagnifyX2
+		}
+		e.syncMap()
+	}
 }
 
 func (e *Editor) setPaletteColor() {
@@ -208,7 +232,7 @@ func (e *Editor) posSquareSelect(x, y float32) {
 	e.syncMap()
 }
 
-func NewEditor(i image.Image, m Magnify, p color.Palette, ca color.Palette, s func(image.Image, color.Palette)) *Editor {
+func NewEditor(i image.Image, m Magnify, p color.Palette, ca color.Palette, s func(image.Image, color.Palette), w fyne.Window) *Editor {
 
 	if len(p) == 0 {
 		p = append(p, color.Black, color.Black, color.Black, color.Black)
@@ -223,12 +247,16 @@ func NewEditor(i image.Image, m Magnify, p color.Palette, ca color.Palette, s fu
 		csi:  canvas.NewImageFromImage(fillImageColor(p[0], default20x20Size)),
 		csii: canvas.NewImageFromImage(fillImageColor(ca[0], default20x20Size)),
 		sv:   s,
+		w:    w,
 	}
+
 	e.o = NewClickableImage(e.oi, e.posSquareSelect)
 	for i := 0; i < m.WidthPixels; i++ {
 		e.ip[i] = make([]color.Color, m.HeightPixels)
 	}
+	e.w.Canvas().SetOnTypedKey(e.onTypedKey)
 	e.m = NewPixelsMap(e.mg, fyne.NewSize(5, 5), e.setColor)
+
 	e.setImagePortion()
 	return e
 }

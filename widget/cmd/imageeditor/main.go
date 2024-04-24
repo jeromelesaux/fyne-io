@@ -23,7 +23,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	e := editor.NewEditor(i, editor.MagnifyX2, CpcOldPalette[0:8], NewCpcPlusPalette(), save)
+	e := editor.NewEditor(i, editor.MagnifyX2, CpcOldPalette[0:8], NewCpcPlusPalette(), save, w)
 	w.SetContent(e.NewEditor())
 	w.ShowAndRun()
 }
