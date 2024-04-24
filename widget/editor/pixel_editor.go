@@ -87,7 +87,12 @@ func (e *Editor) onTypedKey(k *fyne.KeyEvent) {
 			e.mg = MagnifyX2
 		}
 		e.syncMap()
+	case "Space":
+		x := (e.mg.WidthPixels / 2)
+		y := (e.mg.HeightPixels / 2)
+		e.m.onSelected(widget.TableCellID{Col: x, Row: y})
 	}
+
 }
 
 func (e *Editor) setPaletteColor() {
@@ -490,7 +495,6 @@ func NewPixelsMap(m Magnify, sz fyne.Size, s func(x, y int, c color.Color)) *Pix
 			p.mc[i][j] = color.Black
 		}
 	}
-
 	return p
 }
 
