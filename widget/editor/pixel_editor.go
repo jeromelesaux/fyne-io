@@ -203,8 +203,8 @@ func (e *Editor) selectAvailableColor(id widget.TableCellID) {
 }
 
 func (e *Editor) posSquareSelect(x, y float32) {
-	e.px = int(x)
-	e.py = int(y)
+	e.px = int(x) - (e.mg.WidthPixels / 2)
+	e.py = int(y) - (e.mg.HeightPixels / 2)
 	e.syncMap()
 }
 
