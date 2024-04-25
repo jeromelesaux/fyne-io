@@ -88,8 +88,7 @@ func (e *Editor) onTypedKey(k *fyne.KeyEvent) {
 		}
 		e.syncMap()
 	case "Space":
-		x := (e.mg.WidthPixels / 2)
-		y := (e.mg.HeightPixels / 2)
+		x, y := e.m.SelectedCell()
 		e.m.onSelected(widget.TableCellID{Col: x, Row: y})
 	}
 
@@ -418,6 +417,8 @@ type PixelsMap struct {
 	sc       color.Color
 	mc       [][]color.Color
 	setColor func(x, y int, c color.Color)
+	x        int
+	y        int
 }
 
 func (p *PixelsMap) SetColors(cs [][]color.Color) {
@@ -458,17 +459,23 @@ func (p *PixelsMap) updateCell(id widget.TableCellID, cell fyne.CanvasObject) {
 	cell.Refresh()
 }
 func (p *PixelsMap) onSelected(id widget.TableCellID) {
-	x := id.Col
-	y := id.Row
-	p.mc[x][y] = p.sc
+	p.x = id.Col
+	p.y = id.Row
+	p.mc[p.x][p.y] = p.sc
 	if p.setColor != nil {
-		p.setColor(x, y, p.sc)
+		p.setColor(p.x, p.y, p.sc)
 	}
 	p.px.Refresh()
 }
 
 func (p *PixelsMap) onUnselected(id widget.TableCellID) {
 
+}
+
+func (p *PixelsMap) SelectedCell() (x int, y int) {
+	x = p.x
+	y = p.y
+	return
 }
 
 func (pm *PixelsMap) NewPixelsMap() *fyne.Container {
