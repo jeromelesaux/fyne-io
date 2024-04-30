@@ -265,6 +265,16 @@ func NewEditor(i image.Image, m Magnify, p color.Palette, ca color.Palette, s fu
 	return e
 }
 
+func (e *Editor) NewImage(i image.Image) {
+	e.oi = i
+	e.syncMap()
+}
+
+func (e *Editor) NewPalette(p color.Palette) {
+	e.p = p
+	e.syncMap()
+}
+
 func (e *Editor) newDirectionsContainer() *fyne.Container {
 	return container.New(
 		layout.NewAdaptiveGridLayout(3),
