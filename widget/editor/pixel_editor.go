@@ -64,7 +64,10 @@ type Editor struct {
 	o    *ClickableImage
 	m    *PixelsMap // pixels  map pointer
 	sv   func(i image.Image, p color.Palette)
-	w    fyne.Window
+
+	cc *fyne.Container // palette container
+	cp *fyne.Container // color available container
+	w  fyne.Window
 }
 
 func (e *Editor) onTypedKey(k *fyne.KeyEvent) {
@@ -273,11 +276,15 @@ func (e *Editor) NewImage(i image.Image) {
 
 func (e *Editor) NewPalette(p color.Palette) {
 	e.p = p
+	e.cp = e.newPaletteContainer(e.p, e.setPaletteTable, e.selectColorPalette)
+	e.cp.Refresh()
 	e.syncMap()
 }
 
-func (e *Editor) SetAvailablePalette(p color.Palette) {
+func (e *Editor) NewAvailablePalette(p color.Palette) {
 	e.c = p
+	e.cc = e.newPaletteContainer(e.c, nil, e.selectAvailableColor)
+	e.cc.Refresh()
 }
 
 func (e *Editor) newDirectionsContainer() *fyne.Container {
@@ -361,7 +368,8 @@ func (e *Editor) setPaletteTable(t *widget.Table) {
 }
 
 func (e *Editor) NewEditor() *fyne.Container {
-
+	e.cc = e.newPaletteContainer(e.c, nil, e.selectAvailableColor)
+	e.cp = e.newPaletteContainer(e.p, e.setPaletteTable, e.selectColorPalette)
 	e.co = container.New(
 		layout.NewGridLayoutWithColumns(2),
 
@@ -374,7 +382,7 @@ func (e *Editor) NewEditor() *fyne.Container {
 			layout.NewGridLayoutWithRows(9),
 
 			widget.NewLabel("Your palette :"),
-			e.newPaletteContainer(e.p, e.setPaletteTable, e.selectColorPalette),
+			e.cp,
 			container.New(
 				layout.NewAdaptiveGridLayout(1),
 				widget.NewLabel("Selected color from your palette :"),
@@ -382,7 +390,7 @@ func (e *Editor) NewEditor() *fyne.Container {
 			),
 
 			widget.NewLabel("Color available :"),
-			e.newPaletteContainer(e.c, nil, e.selectAvailableColor),
+			e.cc,
 			container.New(
 				layout.NewAdaptiveGridLayout(1),
 				widget.NewLabel("Selected color from available colors :"),
