@@ -267,12 +267,17 @@ func NewEditor(i image.Image, m Magnify, p color.Palette, ca color.Palette, s fu
 
 func (e *Editor) NewImage(i image.Image) {
 	e.oi = i
+	e.o = NewClickableImage(e.oi, e.posSquareSelect)
 	e.syncMap()
 }
 
 func (e *Editor) NewPalette(p color.Palette) {
 	e.p = p
 	e.syncMap()
+}
+
+func (e *Editor) SetAvailablePalette(p color.Palette) {
+	e.c = p
 }
 
 func (e *Editor) newDirectionsContainer() *fyne.Container {
