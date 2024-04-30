@@ -268,13 +268,9 @@ func NewEditor(i image.Image, m Magnify, p color.Palette, ca color.Palette, s fu
 	return e
 }
 
-func (e *Editor) NewImage(i image.Image) {
+func (e *Editor) NewImageAndPalette(i image.Image, p color.Palette) {
 	e.oi = i
 	e.o = NewClickableImage(e.oi, e.posSquareSelect)
-	e.syncMap()
-}
-
-func (e *Editor) NewPalette(p color.Palette) {
 	e.p = p
 	e.cp = e.newPaletteContainer(e.p, e.setPaletteTable, e.selectColorPalette)
 	e.cp.Refresh()
