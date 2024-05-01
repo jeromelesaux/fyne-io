@@ -8,6 +8,9 @@ import (
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
+	"fyne.io/fyne/v2/container"
+	"fyne.io/fyne/v2/layout"
+	"fyne.io/fyne/v2/widget"
 	"github.com/jeromelesaux/fyne-io/widget/editor"
 )
 
@@ -24,7 +27,25 @@ func main() {
 		panic(err)
 	}
 	e := editor.NewEditor(i, editor.MagnifyX2, CpcOldPalette[0:8], NewCpcPlusPalette(), save, w)
-	w.SetContent(e.NewEditor())
+	w.SetContent(
+		container.New(
+			layout.NewHBoxLayout(),
+			widget.NewButton("New", func() {
+				f, err := os.Open("image.png")
+				if err != nil {
+					panic(err)
+				}
+				i, _, err := image.Decode(f)
+				if err != nil {
+					panic(err)
+				}
+				e.NewImageAndPalette(i, CpcOldPalette[2:6])
+				e.NewAvailablePalette(CpcOldPalette)
+			}),
+			e.NewEditor(),
+		),
+	)
+
 	w.ShowAndRun()
 }
 

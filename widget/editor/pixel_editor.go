@@ -65,9 +65,9 @@ type Editor struct {
 	m    *PixelsMap // pixels  map pointer
 	sv   func(i image.Image, p color.Palette)
 
-	cc *fyne.Container // palette container
-	cp *fyne.Container // color available container
-	w  fyne.Window
+	cct *widget.Table
+	cpt *widget.Table
+	w   fyne.Window
 }
 
 func (e *Editor) onTypedKey(k *fyne.KeyEvent) {
@@ -270,17 +270,16 @@ func NewEditor(i image.Image, m Magnify, p color.Palette, ca color.Palette, s fu
 
 func (e *Editor) NewImageAndPalette(i image.Image, p color.Palette) {
 	e.oi = i
-	e.o = NewClickableImage(e.oi, e.posSquareSelect)
+	e.o.i.Image = e.oi
+	e.o.Refresh()
 	e.p = p
-	e.cp = e.newPaletteContainer(e.p, e.setPaletteTable, e.selectColorPalette)
-	e.cp.Refresh()
+	e.cpt.Refresh()
 	e.syncMap()
 }
 
 func (e *Editor) NewAvailablePalette(p color.Palette) {
 	e.c = p
-	e.cc = e.newPaletteContainer(e.c, nil, e.selectAvailableColor)
-	e.cc.Refresh()
+	e.cct.Refresh()
 }
 
 func (e *Editor) newDirectionsContainer() *fyne.Container {
@@ -296,20 +295,20 @@ func (e *Editor) newDirectionsContainer() *fyne.Container {
 	)
 }
 
-func (e *Editor) newPaletteContainer(p color.Palette, setTable func(t *widget.Table), sel func(id widget.TableCellID)) *fyne.Container {
+func (e *Editor) newPaletteContainer(p *color.Palette, setTable func(t *widget.Table), sel func(id widget.TableCellID)) *widget.Table {
 	t := widget.NewTable(func() (int, int) {
-		col := len(p) / 64
+		col := len(*p) / 64
 		if col == 0 {
 			col = 1
 		}
-		row := len(p) % 64
+		row := len(*p) % 64
 		if row == 0 {
 			row = 64
 		}
 		return col, row
 	}, func() fyne.CanvasObject {
 		o := canvas.NewImageFromImage(fillImageColor(color.Black, fyne.NewSize(5, 5)))
-		if len(p) > 64 {
+		if len(*p) > 64 {
 			o.SetMinSize(default10x10Size)
 		} else {
 			o.SetMinSize(default20x20Size)
@@ -318,7 +317,7 @@ func (e *Editor) newPaletteContainer(p color.Palette, setTable func(t *widget.Ta
 	}, func(id widget.TableCellID, cell fyne.CanvasObject) {
 		y := id.Col
 		x := id.Row
-		cell.(*canvas.Image).Image = fillImageColor(p[y+(x*64)], fyne.NewSize(5, 5))
+		cell.(*canvas.Image).Image = fillImageColor((*p)[y+(x*64)], fyne.NewSize(5, 5))
 		cell.Refresh()
 	})
 	t.OnSelected = sel
@@ -326,10 +325,7 @@ func (e *Editor) newPaletteContainer(p color.Palette, setTable func(t *widget.Ta
 		setTable(t)
 	}
 
-	return container.New(
-		layout.NewGridLayout(1),
-		t,
-	)
+	return t
 }
 
 func (e *Editor) squareSelect() {
@@ -364,8 +360,8 @@ func (e *Editor) setPaletteTable(t *widget.Table) {
 }
 
 func (e *Editor) NewEditor() *fyne.Container {
-	e.cc = e.newPaletteContainer(e.c, nil, e.selectAvailableColor)
-	e.cp = e.newPaletteContainer(e.p, e.setPaletteTable, e.selectColorPalette)
+	e.cpt = e.newPaletteContainer(&e.p, e.setPaletteTable, e.selectColorPalette)
+	e.cct = e.newPaletteContainer(&e.c, nil, e.selectAvailableColor)
 	e.co = container.New(
 		layout.NewGridLayoutWithColumns(2),
 
@@ -378,7 +374,10 @@ func (e *Editor) NewEditor() *fyne.Container {
 			layout.NewGridLayoutWithRows(9),
 
 			widget.NewLabel("Your palette :"),
-			e.cp,
+			container.New(
+				layout.NewGridLayout(1),
+				e.cpt,
+			),
 			container.New(
 				layout.NewAdaptiveGridLayout(1),
 				widget.NewLabel("Selected color from your palette :"),
@@ -386,7 +385,10 @@ func (e *Editor) NewEditor() *fyne.Container {
 			),
 
 			widget.NewLabel("Color available :"),
-			e.cc,
+			container.New(
+				layout.NewGridLayout(1),
+				e.cct,
+			),
 			container.New(
 				layout.NewAdaptiveGridLayout(1),
 				widget.NewLabel("Selected color from available colors :"),
