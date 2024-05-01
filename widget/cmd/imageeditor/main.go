@@ -42,7 +42,7 @@ func main() {
 				e.NewImageAndPalette(i, CpcOldPalette[2:6])
 				e.NewAvailablePalette(CpcOldPalette)
 			}),
-			e.NewEditor(),
+			e.NewEmbededEditor("Export"),
 		),
 	)
 

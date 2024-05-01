@@ -359,6 +359,72 @@ func (e *Editor) setPaletteTable(t *widget.Table) {
 	e.pt = t
 }
 
+func (e *Editor) NewEmbededEditor(buttonLabel string) *fyne.Container {
+	e.cpt = e.newPaletteContainer(&e.p, e.setPaletteTable, e.selectColorPalette)
+	e.cct = e.newPaletteContainer(&e.c, nil, e.selectAvailableColor)
+	e.co = container.New(
+		layout.NewGridLayoutWithColumns(2),
+
+		container.New(
+			layout.NewGridLayoutWithRows(2),
+			e.m.NewPixelsMap(),
+			e.o,
+		),
+		container.New(
+			layout.NewGridLayoutWithRows(9),
+
+			widget.NewLabel("Your palette :"),
+			container.New(
+				layout.NewGridLayout(1),
+				e.cpt,
+			),
+			container.New(
+				layout.NewAdaptiveGridLayout(1),
+				widget.NewLabel("Selected color from your palette :"),
+				e.csi,
+			),
+
+			widget.NewLabel("Color available :"),
+			container.New(
+				layout.NewGridLayout(1),
+				e.cct,
+			),
+			container.New(
+				layout.NewAdaptiveGridLayout(1),
+				widget.NewLabel("Selected color from available colors :"),
+				e.csii,
+			),
+			container.New(
+				layout.NewGridLayoutWithColumns(2),
+				widget.NewLabel("Magnify :"),
+				widget.NewSelect([]string{"x2", "x4", "x8"}, func(s string) {
+					switch s {
+					case "x2":
+						e.mg = MagnifyX2
+					case "x4":
+						e.mg = MagnifyX4
+					case "x8":
+						e.mg = MagnifyX8
+					default:
+						return
+					}
+					e.syncMap()
+				}),
+			),
+			e.newDirectionsContainer(),
+			container.New(
+				layout.NewGridLayoutWithColumns(2),
+				widget.NewButtonWithIcon(buttonLabel, theme.FileImageIcon(), func() {
+					if e.sv != nil {
+						e.sv(e.oi, e.p)
+					}
+				}),
+			),
+		),
+	)
+	return e.co
+}
+
 func (e *Editor) NewEditor() *fyne.Container {
 	e.cpt = e.newPaletteContainer(&e.p, e.setPaletteTable, e.selectColorPalette)
 	e.cct = e.newPaletteContainer(&e.c, nil, e.selectAvailableColor)
