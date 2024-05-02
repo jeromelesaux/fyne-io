@@ -8,6 +8,10 @@ func NewFifo() *Fifo {
 	return &Fifo{q: make([]interface{}, 0)}
 }
 
+func (f *Fifo) Reset() {
+	f.q = f.q[:0]
+}
+
 func (f *Fifo) Push(i interface{}) {
 	f.q = append(f.q, i)
 }
