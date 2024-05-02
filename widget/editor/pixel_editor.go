@@ -27,13 +27,13 @@ type Magnify struct {
 
 var (
 	MagnifyX2 = Magnify{
-		Display:      7,
+		Display:      10,
 		Value:        2,
 		WidthPixels:  64,
 		HeightPixels: 64,
 	}
 	MagnifyX4 = Magnify{
-		Display:      15,
+		Display:      20,
 		Value:        4,
 		WidthPixels:  32,
 		HeightPixels: 32,
