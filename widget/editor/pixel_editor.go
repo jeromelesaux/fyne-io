@@ -19,6 +19,10 @@ var (
 	default10x10Size = fyne.NewSize(10, 10)
 )
 
+const (
+	MaxColorValue = 255
+)
+
 type Magnify struct {
 	Display      float32
 	Value        int
@@ -75,7 +79,7 @@ func (c *ColorSelector) findColor() {
 		R: uint8(c.rv),
 		B: uint8(c.bv),
 		G: uint8(c.gv),
-		A: 255,
+		A: MaxColorValue,
 	}
 
 	c.sc = c.p.Convert(col)
@@ -119,13 +123,13 @@ func (c *ColorSelector) NewColorSelector() *fyne.Container {
 	c.gl = widget.NewLabel("0")
 	c.bl = widget.NewLabel("0")
 
-	rs := widget.NewSlider(0, 255)
+	rs := widget.NewSlider(0, MaxColorValue)
 	rs.OnChanged = c.redChange
 
-	gs := widget.NewSlider(0, 255)
+	gs := widget.NewSlider(0, MaxColorValue)
 	gs.OnChanged = c.greenChange
 
-	bs := widget.NewSlider(0, 255)
+	bs := widget.NewSlider(0, MaxColorValue)
 	bs.OnChanged = c.blueChange
 
 	return container.New(
