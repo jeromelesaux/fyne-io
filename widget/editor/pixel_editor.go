@@ -1,6 +1,7 @@
 package editor
 
 import (
+	"fmt"
 	"image"
 	"image/color"
 	"image/draw"
@@ -46,6 +47,120 @@ var (
 	}
 )
 
+type ColorSelector struct {
+	im *canvas.Image
+	p  color.Palette
+	rl *widget.Label // red label
+	bl *widget.Label // blue label
+	gl *widget.Label // green label
+
+	rv float64 // red selected value
+	gv float64 // green selected value
+	bv float64 // blue selected value
+
+	sc color.Color
+
+	ct func(c color.Color) // callback to trigger with new color
+}
+
+func NewColorSelector(p color.Palette, newColor func(c color.Color)) *ColorSelector {
+	return &ColorSelector{
+		p:  p,
+		ct: newColor,
+	}
+}
+
+func (c *ColorSelector) findColor() {
+	col := color.NRGBA{
+		R: uint8(c.rv),
+		B: uint8(c.bv),
+		G: uint8(c.gv),
+		A: 255,
+	}
+
+	c.sc = c.p.Convert(col)
+	c.im.Image = fillImageColor(
+		c.sc,
+		default20x20Size)
+
+	c.im.Refresh()
+}
+
+func (c *ColorSelector) NewPalette(p color.Palette) {
+	c.p = p
+	c.im.Image = fillImageColor(c.p[0],
+		default20x20Size)
+	c.im.Refresh()
+}
+
+func (c *ColorSelector) blueChange(v float64) {
+	c.bl.SetText(fmt.Sprintf("%d", uint8(v)))
+	c.bl.Refresh()
+	c.bv = v
+	c.findColor()
+}
+func (c *ColorSelector) redChange(v float64) {
+	c.rl.SetText(fmt.Sprintf("%d", uint8(v)))
+	c.rl.Refresh()
+	c.rv = v
+	c.findColor()
+}
+func (c *ColorSelector) greenChange(v float64) {
+	c.gl.SetText(fmt.Sprintf("%d", uint8(v)))
+	c.gl.Refresh()
+	c.gv = v
+	c.findColor()
+}
+
+func (c *ColorSelector) NewColorSelector() *fyne.Container {
+	c.im = canvas.NewImageFromImage(fillImageColor(color.Black, default20x20Size))
+	c.sc = color.Black
+	c.rl = widget.NewLabel("0")
+	c.gl = widget.NewLabel("0")
+	c.bl = widget.NewLabel("0")
+
+	rs := widget.NewSlider(0, 255)
+	rs.OnChanged = c.redChange
+
+	gs := widget.NewSlider(0, 255)
+	gs.OnChanged = c.greenChange
+
+	bs := widget.NewSlider(0, 255)
+	bs.OnChanged = c.blueChange
+
+	return container.New(
+		layout.NewGridLayoutWithRows(2),
+		c.im,
+		container.New(
+			layout.NewHBoxLayout(),
+			container.New(
+				layout.NewGridLayoutWithColumns(3),
+				widget.NewLabel("Red"),
+				rs,
+				c.rl,
+			),
+			container.New(
+				layout.NewGridLayoutWithColumns(3),
+				widget.NewLabel("Green"),
+				gs,
+				c.gl,
+			),
+			container.New(
+				layout.NewGridLayoutWithColumns(3),
+				widget.NewLabel("Blue"),
+				bs,
+				c.bl,
+			),
+			widget.NewButton("Apply", func() {
+				if c.ct != nil {
+					c.im.Refresh()
+					c.ct(c.sc)
+				}
+			}),
+		),
+	)
+}
+
 type Editor struct {
 	co *fyne.Container
 	mg Magnify         // magnify used
@@ -56,17 +171,15 @@ type Editor struct {
 	px int             // position in X from the original image
 	py int             // position in Y from the original image
 
-	csi  *canvas.Image // current selected color in palette
-	pi   int           // color position in current palette
-	csii *canvas.Image // current selected color available
-	pci  int           // color position in current available colors
-	pt   *widget.Table
-	o    *ClickableImage
-	m    *PixelsMap // pixels  map pointer
-	sv   func(i image.Image, p color.Palette)
+	csi *canvas.Image // current selected color in palette
+	pi  int           // color position in current palette
+	pt  *widget.Table
+	o   *ClickableImage
+	m   *PixelsMap // pixels  map pointer
+	sv  func(i image.Image, p color.Palette)
 
-	cct *widget.Table
-	cpt *widget.Table
+	cs  *ColorSelector // color selector among c palette (available color)
+	cpt *widget.Table  // current palette widget
 	w   fyne.Window
 }
 
@@ -100,10 +213,7 @@ func (e *Editor) onTypedKey(k *fyne.KeyEvent) {
 func (e *Editor) setPaletteColor() {
 	e.csi.Image = fillImageColor(e.p[e.pi], default20x20Size)
 	e.csi.Refresh()
-}
-
-func (e *Editor) setSelectedAvailableColor() {
-	e.csii.Image = fillImageColor(e.c[e.pci], default20x20Size)
+	e.cpt.Refresh()
 }
 
 func (e *Editor) setImagePortion() {
@@ -114,6 +224,7 @@ func (e *Editor) setImagePortion() {
 		}
 	}
 	e.m.SetColors(e.ip)
+	e.m.px.Refresh()
 }
 
 func (e *Editor) goUp() {
@@ -209,28 +320,12 @@ func colorsAreEqual(c0, c1 color.Color) bool {
 	return true
 }
 
-func (e *Editor) selectAvailableColor(id widget.TableCellID) {
-	y := id.Col
-	x := id.Row
-	e.pci = y + (x * 64)
-	c := e.c[e.pci]
+func (e *Editor) setNewColor(c color.Color) {
 	c0 := e.p[e.pi]
 	e.p[e.pi] = c
 	e.replaceOneColor(c0, c) // replace all the initial color by the new one
 	e.m.SetColor(e.p[e.pi])
-	e.setSelectedAvailableColor()
-
-	cell := canvas.NewImageFromImage(fillImageColor(e.p[e.pi], fyne.NewSize(5, 5)))
-	cell.SetMinSize(default20x20Size)
-	id = widget.TableCellID{
-		Row: 0,
-		Col: e.pi,
-	}
-	e.pt.UpdateCell(id, cell)
-	e.pt.Refresh()
-
 	e.setPaletteColor()
-	e.csii.Refresh()
 }
 
 func (e *Editor) posSquareSelect(x, y float32) {
@@ -246,15 +341,14 @@ func NewEditor(i image.Image, m Magnify, p color.Palette, ca color.Palette, s fu
 	}
 
 	e := &Editor{
-		oi:   i,
-		mg:   m,
-		p:    p,
-		c:    ca,
-		ip:   make([][]color.Color, m.WidthPixels),
-		csi:  canvas.NewImageFromImage(fillImageColor(p[0], default20x20Size)),
-		csii: canvas.NewImageFromImage(fillImageColor(ca[0], default20x20Size)),
-		sv:   s,
-		w:    w,
+		oi:  i,
+		mg:  m,
+		p:   p,
+		c:   ca,
+		ip:  make([][]color.Color, m.WidthPixels),
+		csi: canvas.NewImageFromImage(fillImageColor(p[0], default20x20Size)),
+		sv:  s,
+		w:   w,
 	}
 
 	e.o = NewClickableImage(e.oi, e.posSquareSelect)
@@ -279,7 +373,8 @@ func (e *Editor) NewImageAndPalette(i image.Image, p color.Palette) {
 
 func (e *Editor) NewAvailablePalette(p color.Palette) {
 	e.c = p
-	e.cct.Refresh()
+	e.cs.NewPalette(p)
+	//e.cct.Refresh()
 }
 
 func (e *Editor) newDirectionsContainer() *fyne.Container {
@@ -361,7 +456,8 @@ func (e *Editor) setPaletteTable(t *widget.Table) {
 
 func (e *Editor) NewEmbededEditor(buttonLabel string) *fyne.Container {
 	e.cpt = e.newPaletteContainer(&e.p, e.setPaletteTable, e.selectColorPalette)
-	e.cct = e.newPaletteContainer(&e.c, nil, e.selectAvailableColor)
+	//e.cct = e.newPaletteContainer(&e.c, nil, e.selectAvailableColor)
+	e.cs = NewColorSelector(e.c, e.setNewColor)
 	e.co = container.New(
 		layout.NewGridLayoutWithColumns(2),
 
@@ -371,7 +467,7 @@ func (e *Editor) NewEmbededEditor(buttonLabel string) *fyne.Container {
 			e.o,
 		),
 		container.New(
-			layout.NewGridLayoutWithRows(9),
+			layout.NewGridLayoutWithRows(8),
 
 			widget.NewLabel("Your palette :"),
 			container.New(
@@ -387,12 +483,7 @@ func (e *Editor) NewEmbededEditor(buttonLabel string) *fyne.Container {
 			widget.NewLabel("Color available :"),
 			container.New(
 				layout.NewGridLayout(1),
-				e.cct,
-			),
-			container.New(
-				layout.NewAdaptiveGridLayout(1),
-				widget.NewLabel("Selected color from available colors :"),
-				e.csii,
+				e.cs.NewColorSelector(),
 			),
 			container.New(
 				layout.NewGridLayoutWithColumns(2),
@@ -427,7 +518,8 @@ func (e *Editor) NewEmbededEditor(buttonLabel string) *fyne.Container {
 
 func (e *Editor) NewEditor() *fyne.Container {
 	e.cpt = e.newPaletteContainer(&e.p, e.setPaletteTable, e.selectColorPalette)
-	e.cct = e.newPaletteContainer(&e.c, nil, e.selectAvailableColor)
+	//	e.cct = e.newPaletteContainer(&e.c, nil, e.selectAvailableColor)
+	e.cs = NewColorSelector(e.c, e.setNewColor)
 	e.co = container.New(
 		layout.NewGridLayoutWithColumns(2),
 
@@ -437,7 +529,7 @@ func (e *Editor) NewEditor() *fyne.Container {
 			e.o,
 		),
 		container.New(
-			layout.NewGridLayoutWithRows(9),
+			layout.NewGridLayoutWithRows(8),
 
 			widget.NewLabel("Your palette :"),
 			container.New(
@@ -453,12 +545,7 @@ func (e *Editor) NewEditor() *fyne.Container {
 			widget.NewLabel("Color available :"),
 			container.New(
 				layout.NewGridLayout(1),
-				e.cct,
-			),
-			container.New(
-				layout.NewAdaptiveGridLayout(1),
-				widget.NewLabel("Selected color from available colors :"),
-				e.csii,
+				e.cs.NewColorSelector(),
 			),
 			container.New(
 				layout.NewGridLayoutWithColumns(2),
