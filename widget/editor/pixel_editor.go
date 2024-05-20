@@ -133,10 +133,10 @@ func (c *ColorSelector) NewColorSelector() *fyne.Container {
 	bs.OnChanged = c.blueChange
 
 	return container.New(
-		layout.NewGridLayoutWithRows(2),
+		layout.NewGridLayoutWithColumns(2),
 		c.im,
 		container.New(
-			layout.NewHBoxLayout(),
+			layout.NewGridLayoutWithRows(4),
 			container.New(
 				layout.NewGridLayoutWithColumns(3),
 				widget.NewLabel("Red"),
@@ -383,10 +383,10 @@ func (e *Editor) NewAvailablePalette(p color.Palette) {
 
 func (e *Editor) newDirectionsContainer() *fyne.Container {
 	return container.New(
-		layout.NewAdaptiveGridLayout(3),
+		layout.NewGridLayoutWithRows(3),
 		widget.NewButtonWithIcon("LEFT", theme.NavigateBackIcon(), e.goLeft),
 		container.New(
-			layout.NewAdaptiveGridLayout(1),
+			layout.NewGridLayoutWithColumns(2),
 			widget.NewButtonWithIcon("UP", theme.MoveUpIcon(), e.goUp),
 			widget.NewButtonWithIcon("DOWN", theme.MoveDownIcon(), e.goDown),
 		),
@@ -471,26 +471,28 @@ func (e *Editor) NewEmbededEditor(buttonLabel string) *fyne.Container {
 			e.o,
 		),
 		container.New(
-			layout.NewGridLayoutWithRows(8),
+			layout.NewGridLayoutWithRows(5),
 
-			widget.NewLabel("Your palette :"),
 			container.New(
-				layout.NewGridLayout(1),
-				e.cpt,
-			),
-			container.New(
-				layout.NewAdaptiveGridLayout(1),
-				widget.NewLabel("Selected color from your palette :"),
-				e.csi,
+				layout.NewVBoxLayout(),
+				container.New(
+					layout.NewGridLayoutWithColumns(2),
+					widget.NewLabel("Your palette :"),
+					e.cpt,
+				),
+				container.New(
+					layout.NewGridLayoutWithColumns(2),
+					widget.NewLabel("Selected color from your palette :"),
+					e.csi,
+				),
 			),
 
-			widget.NewLabel("Color available :"),
 			container.New(
-				layout.NewGridLayout(1),
+				layout.NewVBoxLayout(),
 				e.cs.NewColorSelector(),
 			),
 			container.New(
-				layout.NewGridLayoutWithColumns(2),
+				layout.NewVBoxLayout(),
 				widget.NewLabel("Magnify :"),
 				widget.NewSelect([]string{"x2", "x4", "x8"}, func(s string) {
 					switch s {
@@ -508,7 +510,7 @@ func (e *Editor) NewEmbededEditor(buttonLabel string) *fyne.Container {
 			),
 			e.newDirectionsContainer(),
 			container.New(
-				layout.NewGridLayoutWithColumns(2),
+				layout.NewVBoxLayout(),
 				widget.NewButtonWithIcon(buttonLabel, theme.FileImageIcon(), func() {
 					if e.sv != nil {
 						e.sv(e.oi, e.p)
