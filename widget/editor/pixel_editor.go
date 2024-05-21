@@ -138,21 +138,39 @@ func (c *ColorSelector) NewColorSelector() *fyne.Container {
 		container.New(
 			layout.NewGridLayoutWithRows(4),
 			container.New(
-				layout.NewGridLayoutWithColumns(3),
+				layout.NewGridLayoutWithColumns(5),
 				widget.NewLabel("Red"),
 				rs,
+				widget.NewButton("+", func() {
+					rs.SetValue(c.rv + 1.)
+				}),
+				widget.NewButton("-", func() {
+					rs.SetValue(c.rv - 1.)
+				}),
 				c.rl,
 			),
 			container.New(
-				layout.NewGridLayoutWithColumns(3),
+				layout.NewGridLayoutWithColumns(5),
 				widget.NewLabel("Green"),
 				gs,
+				widget.NewButton("+", func() {
+					gs.SetValue(c.gv + 1.)
+				}),
+				widget.NewButton("-", func() {
+					gs.SetValue(c.gv - 1.)
+				}),
 				c.gl,
 			),
 			container.New(
-				layout.NewGridLayoutWithColumns(3),
+				layout.NewGridLayoutWithColumns(5),
 				widget.NewLabel("Blue"),
 				bs,
+				widget.NewButton("+", func() {
+					bs.SetValue(c.bv + 1.)
+				}),
+				widget.NewButton("-", func() {
+					bs.SetValue(c.bv - 1.)
+				}),
 				c.bl,
 			),
 			widget.NewButton("Apply", func() {
