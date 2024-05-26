@@ -1,10 +1,12 @@
 package editor
 
 import (
+	"encoding/hex"
 	"fmt"
 	"image"
 	"image/color"
 	"image/draw"
+	"log"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/canvas"
@@ -12,6 +14,7 @@ import (
 	"fyne.io/fyne/v2/layout"
 	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
+	"github.com/jeromelesaux/fyne-io/widget/fifo"
 )
 
 var (
@@ -64,13 +67,16 @@ type ColorSelector struct {
 
 	sc color.Color
 
-	ct func(c color.Color) // callback to trigger with new color
+	ct   func(c color.Color) // callback to trigger with new color
+	cti  func(c color.Color) // callback to trigger with new color in live
+	live bool
 }
 
-func NewColorSelector(p color.Palette, newColor func(c color.Color)) *ColorSelector {
+func NewColorSelector(p color.Palette, newColor, directColorChange func(c color.Color)) *ColorSelector {
 	return &ColorSelector{
-		p:  p,
-		ct: newColor,
+		p:   p,
+		ct:  newColor,
+		cti: directColorChange,
 	}
 }
 
@@ -86,6 +92,14 @@ func (c *ColorSelector) findColor() {
 	c.im.Image = fillImageColor(
 		c.sc,
 		default20x20Size)
+
+	// if live set, direct send the color to the parent
+	if c.live {
+		if c.cti != nil {
+			c.im.Refresh()
+			c.cti(c.sc)
+		}
+	}
 
 	c.im.Refresh()
 }
@@ -131,48 +145,73 @@ func (c *ColorSelector) NewColorSelector() *fyne.Container {
 
 	bs := widget.NewSlider(0, MaxColorValue)
 	bs.OnChanged = c.blueChange
+	hexValue := widget.NewEntry()
+	hexValue.OnSubmitted = func(s string) {
+		col, err := hex.DecodeString(s)
+		if err != nil {
+			log.Printf("error while reading hex value [%s]", s)
+			return
+		}
+		c.rv = float64(col[0])
+		c.gv = float64(col[1])
+		c.bv = float64(col[2])
+		bs.SetValue(c.bv)
+		rs.SetValue(c.rv)
+		gs.SetValue(c.gv)
+		c.findColor()
+	}
+
+	// liveChanged := func(b bool) {
+	// 	c.live = b
+	// }
 
 	return container.New(
-		layout.NewGridLayoutWithColumns(2),
+		layout.NewGridLayoutWithRows(6),
 		c.im,
 		container.New(
-			layout.NewGridLayoutWithRows(4),
-			container.New(
-				layout.NewGridLayoutWithColumns(5),
-				widget.NewLabel("Red"),
-				rs,
-				widget.NewButton("+", func() {
-					rs.SetValue(c.rv + 1.)
-				}),
-				widget.NewButton("-", func() {
-					rs.SetValue(c.rv - 1.)
-				}),
-				c.rl,
-			),
-			container.New(
-				layout.NewGridLayoutWithColumns(5),
-				widget.NewLabel("Green"),
-				gs,
-				widget.NewButton("+", func() {
-					gs.SetValue(c.gv + 1.)
-				}),
-				widget.NewButton("-", func() {
-					gs.SetValue(c.gv - 1.)
-				}),
-				c.gl,
-			),
-			container.New(
-				layout.NewGridLayoutWithColumns(5),
-				widget.NewLabel("Blue"),
-				bs,
-				widget.NewButton("+", func() {
-					bs.SetValue(c.bv + 1.)
-				}),
-				widget.NewButton("-", func() {
-					bs.SetValue(c.bv - 1.)
-				}),
-				c.bl,
-			),
+			layout.NewGridLayoutWithColumns(5),
+			widget.NewLabel("Red"),
+			rs,
+			widget.NewButton("-", func() {
+				rs.SetValue(c.rv - 1.)
+			}),
+			widget.NewButton("+", func() {
+				rs.SetValue(c.rv + 1.)
+			}),
+			c.rl,
+		),
+		container.New(
+			layout.NewGridLayoutWithColumns(5),
+			widget.NewLabel("Green"),
+			gs,
+			widget.NewButton("-", func() {
+				gs.SetValue(c.gv - 1.)
+			}),
+			widget.NewButton("+", func() {
+				gs.SetValue(c.gv + 1.)
+			}),
+			c.gl,
+		),
+		container.New(
+			layout.NewGridLayoutWithColumns(5),
+			widget.NewLabel("Blue"),
+			bs,
+			widget.NewButton("-", func() {
+				bs.SetValue(c.bv - 1.)
+			}),
+			widget.NewButton("+", func() {
+				bs.SetValue(c.bv + 1.)
+			}),
+			c.bl,
+		),
+		container.New(
+			layout.NewGridLayoutWithColumns(2),
+			widget.NewLabel("Color value in hex #"),
+			hexValue,
+		),
+		container.New(
+			layout.NewGridLayoutWithColumns(1),
+			//	widget.NewCheck("Live", liveChanged),
 			widget.NewButton("Apply", func() {
 				if c.ct != nil {
 					c.im.Refresh()
@@ -181,6 +220,11 @@ func (c *ColorSelector) NewColorSelector() *fyne.Container {
 			}),
 		),
 	)
+}
+
+type ColorHistorc struct {
+	pos int
+	c   color.Color
 }
 
 type Editor struct {
@@ -203,10 +247,15 @@ type Editor struct {
 	cs  *ColorSelector // color selector among c palette (available color)
 	cpt *widget.Table  // current palette widget
 	w   fyne.Window
+
+	ch *fifo.Fifo
 }
 
 func (e *Editor) onTypedKey(k *fyne.KeyEvent) {
 	switch k.Name {
+	case "Escape":
+		// undo
+		e.undoColor()
 	case "Down":
 		e.goDown()
 	case "Up":
@@ -342,10 +391,31 @@ func colorsAreEqual(c0, c1 color.Color) bool {
 	return true
 }
 
+func (e *Editor) liveChangeColor(c color.Color) {
+	c0 := e.p[e.pi]
+	e.replaceOneColor(c0, c)
+}
+
 func (e *Editor) setNewColor(c color.Color) {
 	c0 := e.p[e.pi]
 	e.p[e.pi] = c
-	e.replaceOneColor(c0, c) // replace all the initial color by the new one
+	e.ch.Push(ColorHistorc{
+		pos: e.pi,
+		c:   c0,
+	})
+	e.replaceColor(c0, c)
+}
+
+func (e *Editor) undoColor() {
+	h := e.ch.Pop().(ColorHistorc)
+	oldColor := e.p[h.pos]
+	e.p[h.pos] = h.c
+	e.replaceOneColor(oldColor, h.c) // replace all the initial color by the new one
+	e.setPaletteColor()
+}
+
+func (e *Editor) replaceColor(iniColor, newColor color.Color) {
+	e.replaceOneColor(iniColor, newColor) // replace all the initial color by the new one
 	e.m.SetColor(e.p[e.pi])
 	e.setPaletteColor()
 }
@@ -371,6 +441,7 @@ func NewEditor(i image.Image, m Magnify, p color.Palette, ca color.Palette, s fu
 		csi: canvas.NewImageFromImage(fillImageColor(p[0], default20x20Size)),
 		sv:  s,
 		w:   w,
+		ch:  fifo.NewFifo(),
 	}
 
 	e.o = NewClickableImage(e.oi, e.posSquareSelect)
@@ -402,13 +473,14 @@ func (e *Editor) NewAvailablePalette(p color.Palette) {
 func (e *Editor) newDirectionsContainer() *fyne.Container {
 	return container.New(
 		layout.NewGridLayoutWithRows(3),
-		widget.NewButtonWithIcon("LEFT", theme.NavigateBackIcon(), e.goLeft),
+		widget.NewButtonWithIcon("UP", theme.MoveUpIcon(), e.goUp),
+
 		container.New(
 			layout.NewGridLayoutWithColumns(2),
-			widget.NewButtonWithIcon("UP", theme.MoveUpIcon(), e.goUp),
-			widget.NewButtonWithIcon("DOWN", theme.MoveDownIcon(), e.goDown),
+			widget.NewButtonWithIcon("LEFT", theme.NavigateBackIcon(), e.goLeft),
+			widget.NewButtonWithIcon("RIGHT", theme.NavigateNextIcon(), e.goRight),
 		),
-		widget.NewButtonWithIcon("RIGHT", theme.NavigateNextIcon(), e.goRight),
+		widget.NewButtonWithIcon("DOWN", theme.MoveDownIcon(), e.goDown),
 	)
 }
 
@@ -479,7 +551,7 @@ func (e *Editor) setPaletteTable(t *widget.Table) {
 func (e *Editor) NewEmbededEditor(buttonLabel string) *fyne.Container {
 	e.cpt = e.newPaletteContainer(&e.p, e.setPaletteTable, e.selectColorPalette)
 	//e.cct = e.newPaletteContainer(&e.c, nil, e.selectAvailableColor)
-	e.cs = NewColorSelector(e.c, e.setNewColor)
+	e.cs = NewColorSelector(e.c, e.setNewColor, e.liveChangeColor)
 	e.co = container.New(
 		layout.NewGridLayoutWithColumns(2),
 
@@ -489,7 +561,7 @@ func (e *Editor) NewEmbededEditor(buttonLabel string) *fyne.Container {
 			e.o,
 		),
 		container.New(
-			layout.NewGridLayoutWithRows(5),
+			layout.NewGridLayoutWithRows(4),
 
 			container.New(
 				layout.NewVBoxLayout(),
@@ -509,6 +581,7 @@ func (e *Editor) NewEmbededEditor(buttonLabel string) *fyne.Container {
 				layout.NewVBoxLayout(),
 				e.cs.NewColorSelector(),
 			),
+
 			container.New(
 				layout.NewVBoxLayout(),
 				widget.NewLabel("Magnify :"),
@@ -525,10 +598,7 @@ func (e *Editor) NewEmbededEditor(buttonLabel string) *fyne.Container {
 					}
 					e.syncMap()
 				}),
-			),
-			e.newDirectionsContainer(),
-			container.New(
-				layout.NewVBoxLayout(),
+				e.newDirectionsContainer(),
 				widget.NewButtonWithIcon(buttonLabel, theme.FileImageIcon(), func() {
 					if e.sv != nil {
 						e.sv(e.oi, e.p)
@@ -543,7 +613,7 @@ func (e *Editor) NewEmbededEditor(buttonLabel string) *fyne.Container {
 func (e *Editor) NewEditor() *fyne.Container {
 	e.cpt = e.newPaletteContainer(&e.p, e.setPaletteTable, e.selectColorPalette)
 	//	e.cct = e.newPaletteContainer(&e.c, nil, e.selectAvailableColor)
-	e.cs = NewColorSelector(e.c, e.setNewColor)
+	e.cs = NewColorSelector(e.c, e.setNewColor, e.liveChangeColor)
 	e.co = container.New(
 		layout.NewGridLayoutWithColumns(2),
 
