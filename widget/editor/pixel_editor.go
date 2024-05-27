@@ -309,8 +309,8 @@ func (e *Editor) setImagePortion() {
 }
 
 func (e *Editor) goUpX10() {
-	if (e.px - 10) > 0 {
-		e.px -= 10
+	if (e.py - 10) > 0 {
+		e.py -= 10
 	}
 	e.syncMap()
 }
@@ -622,14 +622,15 @@ func (e *Editor) NewEmbededEditor(buttonLabel string) *fyne.Container {
 					e.cpt,
 				),
 				container.New(
-					layout.NewGridLayoutWithColumns(2),
+					layout.NewAdaptiveGridLayout(1),
 					widget.NewLabel("Selected color from your palette :"),
 					e.csi,
 				),
 			),
 
+			widget.NewLabel("Color available :"),
 			container.New(
-				layout.NewVBoxLayout(),
+				layout.NewGridLayout(1),
 				e.cs.NewColorSelector(),
 			),
 
