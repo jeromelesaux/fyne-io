@@ -253,6 +253,16 @@ type Editor struct {
 
 func (e *Editor) onTypedKey(k *fyne.KeyEvent) {
 	switch k.Name {
+	case "A":
+		e.goUpX10()
+	case "Q":
+		e.goUpX10()
+	case "W":
+		e.goDownx10()
+	case "P":
+		e.goRightX10()
+	case "O":
+		e.goLeftX10()
 	case "Escape":
 		// undo
 		e.undoColor()
@@ -298,21 +308,51 @@ func (e *Editor) setImagePortion() {
 	e.m.px.Refresh()
 }
 
+func (e *Editor) goUpX10() {
+	if (e.px - 10) > 0 {
+		e.px -= 10
+	}
+	e.syncMap()
+}
+
 func (e *Editor) goUp() {
 	if e.py > 0 {
 		e.py--
 	}
 	e.syncMap()
 }
+
+func (e *Editor) goDownx10() {
+	if (e.py + 10) < e.oi.Bounds().Max.Y {
+		e.py += 10
+	}
+	e.syncMap()
+}
+
 func (e *Editor) goDown() {
 	if e.py < e.oi.Bounds().Max.Y {
 		e.py++
 	}
 	e.syncMap()
 }
+
+func (e *Editor) goLeftX10() {
+	if (e.px - 10) > 0 {
+		e.px -= 10
+	}
+	e.syncMap()
+}
+
 func (e *Editor) goLeft() {
 	if e.px > 0 {
 		e.px--
+	}
+	e.syncMap()
+}
+
+func (e *Editor) goRightX10() {
+	if (e.px + 10) < e.oi.Bounds().Max.X {
+		e.px += 10
 	}
 	e.syncMap()
 }
@@ -473,14 +513,25 @@ func (e *Editor) NewAvailablePalette(p color.Palette) {
 func (e *Editor) newDirectionsContainer() *fyne.Container {
 	return container.New(
 		layout.NewGridLayoutWithRows(3),
-		widget.NewButtonWithIcon("UP", theme.MoveUpIcon(), e.goUp),
-
 		container.New(
 			layout.NewGridLayoutWithColumns(2),
+			widget.NewButton("UPx10", e.goUpX10),
+			widget.NewButtonWithIcon("UP", theme.MoveUpIcon(), e.goUp),
+		),
+
+		container.New(
+			layout.NewGridLayoutWithColumns(4),
+			widget.NewButton("<<", e.goLeftX10),
 			widget.NewButtonWithIcon("LEFT", theme.NavigateBackIcon(), e.goLeft),
 			widget.NewButtonWithIcon("RIGHT", theme.NavigateNextIcon(), e.goRight),
+			widget.NewButton(">>", e.goRightX10),
 		),
-		widget.NewButtonWithIcon("DOWN", theme.MoveDownIcon(), e.goDown),
+		container.New(
+			layout.NewGridLayoutWithColumns(2),
+
+			widget.NewButtonWithIcon("DOWN", theme.MoveDownIcon(), e.goDown),
+			widget.NewButton("DOWNx10", e.goDownx10),
+		),
 	)
 }
 
