@@ -447,10 +447,14 @@ func (e *Editor) setNewColor(c color.Color) {
 }
 
 func (e *Editor) undoColor() {
-	h := e.ch.Pop().(ColorHistorc)
-	oldColor := e.p[h.pos]
-	e.p[h.pos] = h.c
-	e.replaceOneColor(oldColor, h.c) // replace all the initial color by the new one
+	h := e.ch.Pop()
+	if h == nil {
+		return
+	}
+	ch := h.(ColorHistorc)
+	oldColor := e.p[ch.pos]
+	e.p[ch.pos] = ch.c
+	e.replaceOneColor(oldColor, ch.c) // replace all the initial color by the new one
 	e.setPaletteColor()
 }
 

@@ -24,6 +24,9 @@ func (f *Fifo) Pop() interface{} {
 	if indice < 0 {
 		indice = 0
 	}
+	if len(f.q) == 0 {
+		return nil
+	}
 	res := f.q[indice]
 	if indice > 0 {
 		f.q = f.q[0:indice]
