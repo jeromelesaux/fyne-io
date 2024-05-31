@@ -17,15 +17,15 @@ func (f *Fifo) Push(i interface{}) {
 }
 
 func (f *Fifo) Pop() interface{} {
+	if len(f.q) == 0 {
+		return nil
+	}
 	indice := -1
 	if len(f.q) >= 1 {
 		indice = len(f.q) - 1
 	}
 	if indice < 0 {
 		indice = 0
-	}
-	if len(f.q) == 0 {
-		return nil
 	}
 	res := f.q[indice]
 	if indice > 0 {
