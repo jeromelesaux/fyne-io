@@ -41,13 +41,13 @@ var (
 		HeightPixels: 40,
 	}
 	MagnifyX4 = Magnify{
-		Display:      20,
+		Display:      12,
 		Value:        4,
 		WidthPixels:  32,
 		HeightPixels: 32,
 	}
 	MagnifyX8 = Magnify{
-		Display:      25,
+		Display:      22,
 		Value:        8,
 		WidthPixels:  16,
 		HeightPixels: 16,
