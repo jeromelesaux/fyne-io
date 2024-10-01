@@ -167,7 +167,11 @@ func (c *ColorSelector) NewColorSelector() *fyne.Container {
 
 	return container.New(
 		layout.NewGridLayoutWithRows(6),
-		c.im,
+		container.New(
+			layout.NewGridLayoutWithColumns(2),
+			widget.NewLabel("Color available :"),
+			c.im,
+		),
 		container.New(
 			layout.NewGridLayoutWithColumns(5),
 			widget.NewLabel("Red"),
@@ -205,12 +209,12 @@ func (c *ColorSelector) NewColorSelector() *fyne.Container {
 			c.bl,
 		),
 		container.New(
-			layout.NewGridLayoutWithColumns(2),
+			layout.NewGridLayoutWithColumns(3),
 			widget.NewLabel("Color value in hex #"),
 			hexValue,
 		),
 		container.New(
-			layout.NewGridLayoutWithColumns(1),
+			layout.NewGridLayoutWithRows(1),
 			//	widget.NewCheck("Live", liveChanged),
 			widget.NewButton("Apply", func() {
 				if c.ct != nil {
@@ -516,7 +520,25 @@ func (e *Editor) NewAvailablePalette(p color.Palette) {
 
 func (e *Editor) newDirectionsContainer() *fyne.Container {
 	return container.New(
-		layout.NewGridLayoutWithRows(3),
+		layout.NewGridLayoutWithRows(4),
+		container.New(
+			layout.NewGridLayoutWithColumns(2),
+			widget.NewLabel("Magnify :"),
+			widget.NewSelect([]string{"x2", "x4", "x8"}, func(s string) {
+				switch s {
+				case "x2":
+					e.mg = MagnifyX2
+				case "x4":
+					e.mg = MagnifyX4
+				case "x8":
+					e.mg = MagnifyX8
+				default:
+					return
+				}
+				e.syncMap()
+			}),
+		),
+
 		container.New(
 			layout.NewGridLayoutWithColumns(2),
 			widget.NewButton("UPx10", e.goUpX10),
@@ -626,13 +648,12 @@ func (e *Editor) NewEmbededEditor(buttonLabel string) *fyne.Container {
 					e.cpt,
 				),
 				container.New(
-					layout.NewAdaptiveGridLayout(1),
+					layout.NewGridLayoutWithRows(1),
 					widget.NewLabel("Selected color from your palette :"),
 					e.csi,
 				),
 			),
 
-			widget.NewLabel("Color available :"),
 			container.New(
 				layout.NewGridLayout(1),
 				e.cs.NewColorSelector(),
@@ -640,20 +661,6 @@ func (e *Editor) NewEmbededEditor(buttonLabel string) *fyne.Container {
 
 			container.New(
 				layout.NewVBoxLayout(),
-				widget.NewLabel("Magnify :"),
-				widget.NewSelect([]string{"x2", "x4", "x8"}, func(s string) {
-					switch s {
-					case "x2":
-						e.mg = MagnifyX2
-					case "x4":
-						e.mg = MagnifyX4
-					case "x8":
-						e.mg = MagnifyX8
-					default:
-						return
-					}
-					e.syncMap()
-				}),
 				e.newDirectionsContainer(),
 				widget.NewButtonWithIcon(buttonLabel, theme.FileImageIcon(), func() {
 					if e.sv != nil {
@@ -679,44 +686,28 @@ func (e *Editor) NewEditor() *fyne.Container {
 			e.o,
 		),
 		container.New(
-			layout.NewGridLayoutWithRows(8),
-
-			widget.NewLabel("Your palette :"),
+			layout.NewGridLayoutWithRows(5),
 			container.New(
-				layout.NewGridLayout(1),
-				e.cpt,
+				layout.NewGridLayoutWithRows(2),
+				container.New(
+					layout.NewGridLayoutWithRows(2),
+					widget.NewLabel("Your palette :"),
+					e.cpt,
+				),
+				container.New(
+					layout.NewGridLayoutWithRows(1),
+					widget.NewLabel("Selected color from your palette :"),
+					e.csi,
+				),
 			),
-			container.New(
-				layout.NewAdaptiveGridLayout(1),
-				widget.NewLabel("Selected color from your palette :"),
-				e.csi,
-			),
-
 			widget.NewLabel("Color available :"),
 			container.New(
 				layout.NewGridLayout(1),
 				e.cs.NewColorSelector(),
 			),
-			container.New(
-				layout.NewGridLayoutWithColumns(2),
-				widget.NewLabel("Magnify :"),
-				widget.NewSelect([]string{"x2", "x4", "x8"}, func(s string) {
-					switch s {
-					case "x2":
-						e.mg = MagnifyX2
-					case "x4":
-						e.mg = MagnifyX4
-					case "x8":
-						e.mg = MagnifyX8
-					default:
-						return
-					}
-					e.syncMap()
-				}),
-			),
 			e.newDirectionsContainer(),
 			container.New(
-				layout.NewGridLayoutWithColumns(2),
+				layout.NewVBoxLayout(),
 				widget.NewButtonWithIcon("Save", theme.FileImageIcon(), func() {
 					if e.sv != nil {
 						e.sv(e.oi, e.p)
