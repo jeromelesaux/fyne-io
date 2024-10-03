@@ -595,15 +595,16 @@ func (e *Editor) newPaletteContainer(p *color.Palette, setTable func(t *widget.T
 }
 
 func (e *Editor) squareSelect() {
+	c := color.RGBA{R: 245, G: 245, B: 245, A: 255}
 	i := image.NewNRGBA(e.oi.Bounds())
 	draw.Draw(i, i.Bounds(), e.oi, image.Point{0, 0}, draw.Src)
 	for x := e.px; x < e.px+e.mg.WidthPixels; x++ {
-		i.Set(x, e.py, color.Black)
-		i.Set(x, e.py+e.mg.HeightPixels, color.Black)
+		i.Set(x, e.py, c)
+		i.Set(x, e.py+e.mg.HeightPixels, c)
 	}
 	for y := e.py; y < e.py+e.mg.HeightPixels; y++ {
-		i.Set(e.px, y, color.Black)
-		i.Set(e.px+e.mg.WidthPixels, y, color.Black)
+		i.Set(e.px, y, c)
+		i.Set(e.px+e.mg.WidthPixels, y, c)
 	}
 	e.o.SetImage(i)
 	e.o.Refresh()
