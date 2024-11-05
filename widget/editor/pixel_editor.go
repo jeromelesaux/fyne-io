@@ -278,6 +278,8 @@ type Editor struct {
 	cpt *widget.Table  // current palette widget
 	w   fyne.Window
 
+	pickColor bool
+
 	ch *fifo.Fifo
 }
 
@@ -395,6 +397,11 @@ func (e *Editor) goRight() {
 }
 
 func (e *Editor) setColor(x, y int, c color.Color) {
+	if e.pickColor {
+		e.cs.SetColorSelector(c)
+		e.pickColor = false
+		return
+	}
 	switch e.oi.(type) {
 	case *image.NRGBA:
 		e.oi.(*image.NRGBA).Set(e.px+x, e.py+y, c)
@@ -565,10 +572,19 @@ func (e *Editor) newMagnifyContainer() *fyne.Container {
 	)
 }
 
+func (e *Editor) newColorPickerContainer() *fyne.Container {
+	return container.New(
+		layout.NewGridLayoutWithRows(1),
+		widget.NewButtonWithIcon("Color Pïcker", theme.ColorChromaticIcon(), func() {
+			e.pickColor = true
+			e.m.SetPickColor()
+		}),
+	)
+}
+
 func (e *Editor) newDirectionsContainer() *fyne.Container {
 	return container.New(
 		layout.NewGridLayoutWithRows(6),
-		e.newMagnifyContainer(),
 
 		container.New(
 			layout.NewGridLayoutWithColumns(1),
@@ -665,18 +681,14 @@ func (e *Editor) setPaletteTable(t *widget.Table) {
 
 func (e *Editor) NewEmbededEditor(buttonLabel string) *fyne.Container {
 	e.cpt = e.newPaletteContainer(&e.p, e.setPaletteTable, e.selectColorPalette)
-	//e.cct = e.newPaletteContainer(&e.c, nil, e.selectAvailableColor)
 	e.cs = NewColorSelector(e.c, e.setNewColor, e.liveChangeColor)
 	e.co = container.New(
 		layout.NewGridLayoutWithColumns(2),
 
 		container.New(
-			layout.NewGridLayout(1),
-			container.New(
-				layout.NewGridLayoutWithRows(2),
-				e.m.NewPixelsMap(),
-				e.o,
-			),
+			layout.NewGridLayoutWithRows(2),
+			e.m.NewPixelsMap(),
+			e.o,
 		),
 		container.New(
 			layout.NewGridLayoutWithRows(4),
@@ -693,6 +705,7 @@ func (e *Editor) NewEmbededEditor(buttonLabel string) *fyne.Container {
 					widget.NewLabel("Selected color from your palette :"),
 					e.csi,
 				),
+				e.newColorPickerContainer(),
 			),
 
 			container.New(
@@ -702,6 +715,7 @@ func (e *Editor) NewEmbededEditor(buttonLabel string) *fyne.Container {
 
 			container.New(
 				layout.NewVBoxLayout(),
+				e.newMagnifyContainer(),
 				e.newDirectionsContainer(),
 				widget.NewButtonWithIcon(buttonLabel, theme.FileImageIcon(), func() {
 					if e.sv != nil {
@@ -726,9 +740,9 @@ func (e *Editor) NewEditor() *fyne.Container {
 			e.o,
 		),
 		container.New(
-			layout.NewGridLayoutWithRows(5),
+			layout.NewGridLayoutWithRows(6),
 			container.New(
-				layout.NewGridLayoutWithRows(2),
+				layout.NewGridLayoutWithRows(3),
 				container.New(
 					layout.NewCenterLayout(),
 					widget.NewLabel("Your palette :"),
@@ -739,12 +753,14 @@ func (e *Editor) NewEditor() *fyne.Container {
 					widget.NewLabel("Selected color from your palette :"),
 					e.csi,
 				),
+				e.newColorPickerContainer(),
 			),
 			widget.NewLabel("Color available :"),
 			container.New(
 				layout.NewGridLayout(1),
 				e.cs.NewColorSelector(),
 			),
+			e.newMagnifyContainer(),
 			e.newDirectionsContainer(),
 			container.New(
 				layout.NewVBoxLayout(),
@@ -754,6 +770,7 @@ func (e *Editor) NewEditor() *fyne.Container {
 					}
 					e.co.Hide()
 				}),
+
 				widget.NewButtonWithIcon("Cancel", theme.CancelIcon(), func() { e.co.Hide() }),
 			),
 		),
@@ -766,14 +783,19 @@ func (e *Editor) NewEditor() *fyne.Container {
 */
 
 type PixelsMap struct {
-	mg       Magnify
-	sz       fyne.Size
-	px       *widget.Table
-	sc       color.Color
-	mc       [][]color.Color
-	setColor func(x, y int, c color.Color)
-	x        int
-	y        int
+	mg        Magnify
+	sz        fyne.Size
+	px        *widget.Table
+	sc        color.Color
+	mc        [][]color.Color
+	setColor  func(x, y int, c color.Color)
+	x         int
+	y         int
+	pickColor bool
+}
+
+func (p *PixelsMap) SetPickColor() {
+	p.pickColor = true
 }
 
 func (p *PixelsMap) SetColors(cs [][]color.Color) {
@@ -816,7 +838,15 @@ func (p *PixelsMap) updateCell(id widget.TableCellID, cell fyne.CanvasObject) {
 func (p *PixelsMap) onSelected(id widget.TableCellID) {
 	p.x = id.Col
 	p.y = id.Row
+	previousColor := p.mc[p.x][p.y]
 	p.mc[p.x][p.y] = p.sc
+	if p.pickColor {
+		if p.setColor != nil {
+			p.setColor(p.x, p.y, previousColor)
+		}
+		p.pickColor = false
+		return
+	}
 	if p.setColor != nil {
 		p.setColor(p.x, p.y, p.sc)
 	}
