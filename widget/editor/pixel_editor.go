@@ -545,26 +545,30 @@ func (e *Editor) NewAvailablePalette(p color.Palette) {
 	//e.cct.Refresh()
 }
 
+func (e *Editor) newMagnifyContainer() *fyne.Container {
+	return container.New(
+		layout.NewGridLayoutWithColumns(2),
+		widget.NewLabel("Magnify :"),
+		widget.NewSelect([]string{"x2", "x4", "x8"}, func(s string) {
+			switch s {
+			case "x2":
+				e.mg = MagnifyX2
+			case "x4":
+				e.mg = MagnifyX4
+			case "x8":
+				e.mg = MagnifyX8
+			default:
+				return
+			}
+			e.syncMap()
+		}),
+	)
+}
+
 func (e *Editor) newDirectionsContainer() *fyne.Container {
 	return container.New(
 		layout.NewGridLayoutWithRows(6),
-		container.New(
-			layout.NewGridLayoutWithColumns(2),
-			widget.NewLabel("Magnify :"),
-			widget.NewSelect([]string{"x2", "x4", "x8"}, func(s string) {
-				switch s {
-				case "x2":
-					e.mg = MagnifyX2
-				case "x4":
-					e.mg = MagnifyX4
-				case "x8":
-					e.mg = MagnifyX8
-				default:
-					return
-				}
-				e.syncMap()
-			}),
-		),
+		e.newMagnifyContainer(),
 
 		container.New(
 			layout.NewGridLayoutWithColumns(1),
@@ -667,9 +671,12 @@ func (e *Editor) NewEmbededEditor(buttonLabel string) *fyne.Container {
 		layout.NewGridLayoutWithColumns(2),
 
 		container.New(
-			layout.NewGridLayoutWithRows(2),
-			e.m.NewPixelsMap(),
-			e.o,
+			layout.NewGridLayout(1),
+			container.New(
+				layout.NewGridLayoutWithRows(2),
+				e.m.NewPixelsMap(),
+				e.o,
+			),
 		),
 		container.New(
 			layout.NewGridLayoutWithRows(4),
