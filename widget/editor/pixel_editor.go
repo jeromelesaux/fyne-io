@@ -390,7 +390,7 @@ func (e *Editor) setColor(x, y int, c color.Color) {
 func (e *Editor) selectColorPalette(id widget.TableCellID) {
 	y := id.Col
 	x := id.Row
-	e.pi = y + (x * 64)
+	e.pi = y + (x * 4)
 	e.m.SetColor(e.p[y])
 	e.setPaletteColor()
 }
@@ -520,7 +520,7 @@ func (e *Editor) NewAvailablePalette(p color.Palette) {
 
 func (e *Editor) newDirectionsContainer() *fyne.Container {
 	return container.New(
-		layout.NewGridLayoutWithRows(4),
+		layout.NewGridLayoutWithRows(6),
 		container.New(
 			layout.NewGridLayoutWithColumns(2),
 			widget.NewLabel("Magnify :"),
@@ -540,8 +540,12 @@ func (e *Editor) newDirectionsContainer() *fyne.Container {
 		),
 
 		container.New(
-			layout.NewGridLayoutWithColumns(2),
+			layout.NewGridLayoutWithColumns(1),
 			widget.NewButton("UPx10", e.goUpX10),
+		),
+
+		container.New(
+			layout.NewGridLayoutWithColumns(1),
 			widget.NewButtonWithIcon("UP", theme.MoveUpIcon(), e.goUp),
 		),
 
@@ -554,8 +558,10 @@ func (e *Editor) newDirectionsContainer() *fyne.Container {
 		),
 		container.New(
 			layout.NewGridLayoutWithColumns(2),
-
 			widget.NewButtonWithIcon("DOWN", theme.MoveDownIcon(), e.goDown),
+		),
+		container.New(
+			layout.NewGridLayoutWithColumns(1),
 			widget.NewButton("DOWNx10", e.goDownx10),
 		),
 	)
@@ -563,18 +569,18 @@ func (e *Editor) newDirectionsContainer() *fyne.Container {
 
 func (e *Editor) newPaletteContainer(p *color.Palette, setTable func(t *widget.Table), sel func(id widget.TableCellID)) *widget.Table {
 	t := widget.NewTable(func() (int, int) {
-		col := len(*p) / 64
+		col := len(*p) / 4
 		if col == 0 {
 			col = 1
 		}
-		row := len(*p) % 64
+		row := len(*p) % 4
 		if row == 0 {
-			row = 64
+			row = 4
 		}
 		return col, row
 	}, func() fyne.CanvasObject {
-		o := canvas.NewImageFromImage(fillImageColor(color.Black, fyne.NewSize(5, 5)))
-		if len(*p) > 64 {
+		o := canvas.NewImageFromImage(fillImageColor(color.Black, fyne.NewSize(10, 10)))
+		if len(*p) > 4 {
 			o.SetMinSize(default10x10Size)
 		} else {
 			o.SetMinSize(default20x20Size)
@@ -583,7 +589,7 @@ func (e *Editor) newPaletteContainer(p *color.Palette, setTable func(t *widget.T
 	}, func(id widget.TableCellID, cell fyne.CanvasObject) {
 		y := id.Col
 		x := id.Row
-		cell.(*canvas.Image).Image = fillImageColor((*p)[y+(x*64)], fyne.NewSize(5, 5))
+		cell.(*canvas.Image).Image = fillImageColor((*p)[y+(x*4)], fyne.NewSize(10, 10))
 		cell.Refresh()
 	})
 	t.OnSelected = sel
@@ -676,7 +682,6 @@ func (e *Editor) NewEmbededEditor(buttonLabel string) *fyne.Container {
 
 func (e *Editor) NewEditor() *fyne.Container {
 	e.cpt = e.newPaletteContainer(&e.p, e.setPaletteTable, e.selectColorPalette)
-	//	e.cct = e.newPaletteContainer(&e.c, nil, e.selectAvailableColor)
 	e.cs = NewColorSelector(e.c, e.setNewColor, e.liveChangeColor)
 	e.co = container.New(
 		layout.NewGridLayoutWithColumns(2),
@@ -691,7 +696,7 @@ func (e *Editor) NewEditor() *fyne.Container {
 			container.New(
 				layout.NewGridLayoutWithRows(2),
 				container.New(
-					layout.NewGridLayoutWithRows(2),
+					layout.NewCenterLayout(),
 					widget.NewLabel("Your palette :"),
 					e.cpt,
 				),
