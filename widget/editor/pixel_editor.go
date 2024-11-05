@@ -61,9 +61,15 @@ type ColorSelector struct {
 	bl *widget.Label // blue label
 	gl *widget.Label // green label
 
+	rs *widget.Slider // red slider
+	bs *widget.Slider // blue slider
+	gs *widget.Slider // green slider
+
 	rv float64 // red selected value
 	gv float64 // green selected value
 	bv float64 // blue selected value
+
+	hexValue *widget.Entry // color value in hexa
 
 	sc color.Color
 
@@ -130,6 +136,26 @@ func (c *ColorSelector) greenChange(v float64) {
 	c.findColor()
 }
 
+func (c *ColorSelector) SetColorSelector(col color.Color) {
+	c.im.Image = fillImageColor(col, default20x20Size)
+	c.sc = col
+	r, g, b, _ := col.RGBA()
+	c.rl.SetText(fmt.Sprintf("%d", r>>8))
+	c.gl.SetText(fmt.Sprintf("%d", g>>8))
+	c.bl.SetText(fmt.Sprintf("%d", b>>8))
+	c.bs.SetValue(float64(b >> 8))
+	c.rs.SetValue(float64(r >> 8))
+	c.gs.SetValue(float64(g >> 8))
+
+	c.bs.Refresh()
+	c.rs.Refresh()
+	c.gs.Refresh()
+	c.bl.Refresh()
+	c.rl.Refresh()
+	c.gl.Refresh()
+	c.im.Refresh()
+}
+
 func (c *ColorSelector) NewColorSelector() *fyne.Container {
 	c.im = canvas.NewImageFromImage(fillImageColor(color.Black, default20x20Size))
 	c.sc = color.Black
@@ -137,16 +163,16 @@ func (c *ColorSelector) NewColorSelector() *fyne.Container {
 	c.gl = widget.NewLabel("0")
 	c.bl = widget.NewLabel("0")
 
-	rs := widget.NewSlider(0, MaxColorValue)
-	rs.OnChanged = c.redChange
+	c.rs = widget.NewSlider(0, MaxColorValue)
+	c.rs.OnChanged = c.redChange
 
-	gs := widget.NewSlider(0, MaxColorValue)
-	gs.OnChanged = c.greenChange
+	c.gs = widget.NewSlider(0, MaxColorValue)
+	c.gs.OnChanged = c.greenChange
 
-	bs := widget.NewSlider(0, MaxColorValue)
-	bs.OnChanged = c.blueChange
-	hexValue := widget.NewEntry()
-	hexValue.OnSubmitted = func(s string) {
+	c.bs = widget.NewSlider(0, MaxColorValue)
+	c.bs.OnChanged = c.blueChange
+	c.hexValue = widget.NewEntry()
+	c.hexValue.OnSubmitted = func(s string) {
 		col, err := hex.DecodeString(s)
 		if err != nil {
 			log.Printf("error while reading hex value [%s]", s)
@@ -155,9 +181,9 @@ func (c *ColorSelector) NewColorSelector() *fyne.Container {
 		c.rv = float64(col[0])
 		c.gv = float64(col[1])
 		c.bv = float64(col[2])
-		bs.SetValue(c.bv)
-		rs.SetValue(c.rv)
-		gs.SetValue(c.gv)
+		c.bs.SetValue(c.bv)
+		c.rs.SetValue(c.rv)
+		c.gs.SetValue(c.gv)
 		c.findColor()
 	}
 
@@ -175,43 +201,43 @@ func (c *ColorSelector) NewColorSelector() *fyne.Container {
 		container.New(
 			layout.NewGridLayoutWithColumns(5),
 			widget.NewLabel("Red"),
-			rs,
+			c.rs,
 			widget.NewButton("-", func() {
-				rs.SetValue(c.rv - 1.)
+				c.rs.SetValue(c.rv - 1.)
 			}),
 			widget.NewButton("+", func() {
-				rs.SetValue(c.rv + 1.)
+				c.rs.SetValue(c.rv + 1.)
 			}),
 			c.rl,
 		),
 		container.New(
 			layout.NewGridLayoutWithColumns(5),
 			widget.NewLabel("Green"),
-			gs,
+			c.gs,
 			widget.NewButton("-", func() {
-				gs.SetValue(c.gv - 1.)
+				c.gs.SetValue(c.gv - 1.)
 			}),
 			widget.NewButton("+", func() {
-				gs.SetValue(c.gv + 1.)
+				c.gs.SetValue(c.gv + 1.)
 			}),
 			c.gl,
 		),
 		container.New(
 			layout.NewGridLayoutWithColumns(5),
 			widget.NewLabel("Blue"),
-			bs,
+			c.bs,
 			widget.NewButton("-", func() {
-				bs.SetValue(c.bv - 1.)
+				c.bs.SetValue(c.bv - 1.)
 			}),
 			widget.NewButton("+", func() {
-				bs.SetValue(c.bv + 1.)
+				c.bs.SetValue(c.bv + 1.)
 			}),
 			c.bl,
 		),
 		container.New(
 			layout.NewGridLayoutWithColumns(3),
 			widget.NewLabel("Color value in hex #"),
-			hexValue,
+			c.hexValue,
 		),
 		container.New(
 			layout.NewGridLayoutWithRows(1),
@@ -295,9 +321,10 @@ func (e *Editor) onTypedKey(k *fyne.KeyEvent) {
 
 }
 
-func (e *Editor) setPaletteColor() {
+func (e *Editor) setPaletteColor() { // apply color choose from the palette
 	e.csi.Image = fillImageColor(e.p[e.pi], default20x20Size)
 	e.csi.Refresh()
+	e.cs.SetColorSelector(e.p[e.pi])
 	e.cpt.Refresh()
 }
 
