@@ -902,6 +902,7 @@ func NewClickableImage(i image.Image, tapped func(float32, float32)) *ClickableI
 		i:      canvas.NewImageFromImage(i),
 		tapped: tapped,
 	}
+	c.i.FillMode = canvas.ImageFillContain
 	c.ExtendBaseWidget(c)
 	return c
 }
