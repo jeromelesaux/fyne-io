@@ -604,7 +604,7 @@ func (e *Editor) newDirectionsContainer() *fyne.Container {
 			widget.NewButton(">>", e.goRightX10),
 		),
 		container.New(
-			layout.NewGridLayoutWithColumns(2),
+			layout.NewGridLayoutWithColumns(1),
 			widget.NewButtonWithIcon("DOWN", theme.MoveDownIcon(), e.goDown),
 		),
 		container.New(
@@ -691,7 +691,7 @@ func (e *Editor) NewEmbededEditor(buttonLabel string) *fyne.Container {
 			e.o,
 		),
 		container.New(
-			layout.NewGridLayoutWithRows(4),
+			layout.NewGridLayoutWithRows(2),
 
 			container.New(
 				layout.NewVBoxLayout(),
@@ -706,11 +706,10 @@ func (e *Editor) NewEmbededEditor(buttonLabel string) *fyne.Container {
 					e.csi,
 				),
 				e.newColorPickerContainer(),
-			),
-
-			container.New(
-				layout.NewGridLayout(1),
-				e.cs.NewColorSelector(),
+				container.New(
+					layout.NewGridLayout(1),
+					e.cs.NewColorSelector(),
+				),
 			),
 
 			container.New(
