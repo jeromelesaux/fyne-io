@@ -284,12 +284,13 @@ type Editor struct {
 }
 
 func (e *Editor) onTypedKey(k *fyne.KeyEvent) {
+
 	switch k.Name {
 	case "A":
 		e.goUpX10()
-	case "Q":
+	case "S":
 		e.goUpX10()
-	case "W":
+	case "X":
 		e.goDownx10()
 	case "P":
 		e.goRightX10()
@@ -306,6 +307,7 @@ func (e *Editor) onTypedKey(k *fyne.KeyEvent) {
 		e.goRight()
 	case "Left":
 		e.goLeft()
+
 	case "M":
 		switch e.mg {
 		case MagnifyX2:
@@ -531,6 +533,9 @@ func NewEditor(i image.Image, m Magnify, p color.Palette, ca color.Palette, s fu
 		e.ip[i] = make([]color.Color, m.HeightPixels)
 	}
 	e.w.Canvas().SetOnTypedKey(e.onTypedKey)
+	e.w.Canvas().SetOnTypedRune(func(r rune) {
+		fmt.Println("rune:", r)
+	})
 	e.m = NewPixelsMap(e.mg, fyne.NewSize(5, 5), e.setColor)
 
 	e.setImagePortion()
