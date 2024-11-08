@@ -3,6 +3,7 @@ package main
 import (
 	"image"
 	"image/color"
+	"image/draw"
 	"image/png"
 	"os"
 
@@ -32,14 +33,8 @@ func main() {
 		container.New(
 			layout.NewHBoxLayout(),
 			widget.NewButton("New", func() {
-				f, err := os.Open("image.png")
-				if err != nil {
-					panic(err)
-				}
-				i, _, err := image.Decode(f)
-				if err != nil {
-					panic(err)
-				}
+				i := image.NewNRGBA(image.Rect(0, 0, 16, 16))
+				draw.Draw(i, i.Bounds(), &image.Uniform{color.Black}, image.Point{0, 0}, draw.Src)
 				e.NewImageAndPalette(i, CpcOldPalette[2:6])
 				e.NewAvailablePalette(CpcOldPalette)
 			}),

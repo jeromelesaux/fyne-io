@@ -52,6 +52,12 @@ var (
 		WidthPixels:  16,
 		HeightPixels: 16,
 	}
+	Sprite = Magnify{
+		Display:      25,
+		Value:        8,
+		WidthPixels:  16,
+		HeightPixels: 16,
+	}
 )
 
 type ColorSelector struct {
@@ -543,6 +549,9 @@ func NewEditor(i image.Image, m Magnify, p color.Palette, ca color.Palette, s fu
 }
 
 func (e *Editor) NewImageAndPalette(i image.Image, p color.Palette) {
+	if i.Bounds().Max.X == 16 && i.Bounds().Max.Y == 16 { // in case of a sprite import
+		e.mg = Sprite
+	}
 	e.oi = i
 	e.o.i.Image = e.oi
 	e.o.Refresh()
@@ -729,6 +738,7 @@ func (e *Editor) NewEmbededEditor(buttonLabel string) *fyne.Container {
 			),
 		),
 	)
+	e.cs.SetColorSelector(e.p[0])
 	return e.co
 }
 
@@ -779,6 +789,7 @@ func (e *Editor) NewEditor() *fyne.Container {
 			),
 		),
 	)
+	e.cs.SetColorSelector(e.p[0])
 	return e.co
 }
 
@@ -840,6 +851,9 @@ func (p *PixelsMap) updateCell(id widget.TableCellID, cell fyne.CanvasObject) {
 	cell.Refresh()
 }
 func (p *PixelsMap) onSelected(id widget.TableCellID) {
+	if id.Col < 0 || id.Row < 0 {
+		return
+	}
 	p.x = id.Col
 	p.y = id.Row
 	previousColor := p.mc[p.x][p.y]
