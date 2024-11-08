@@ -430,6 +430,9 @@ func (e *Editor) setColor(x, y int, c color.Color) {
 }
 
 func (e *Editor) selectColorPalette(id widget.TableCellID) {
+	if id.Col < 0 || id.Row < 0 {
+		return
+	}
 	y := id.Col
 	x := id.Row
 	e.pi = y + (x * 4)

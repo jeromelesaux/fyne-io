@@ -35,7 +35,7 @@ func main() {
 			widget.NewButton("New", func() {
 				i := image.NewNRGBA(image.Rect(0, 0, 16, 16))
 				draw.Draw(i, i.Bounds(), &image.Uniform{color.Black}, image.Point{0, 0}, draw.Src)
-				e.NewImageAndPalette(i, CpcOldPalette[2:6])
+				e.NewImageAndPalette(i, CpcOldPalette[2:18])
 				e.NewAvailablePalette(CpcOldPalette)
 			}),
 			e.NewEmbededEditor("Export"),
