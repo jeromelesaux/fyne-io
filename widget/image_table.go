@@ -11,9 +11,10 @@ import (
 )
 
 type ImageTableCache struct {
-	images          [][]*canvas.Image
-	ImagesPerRow    int
-	ImagesPerColumn int
+	images            [][]*canvas.Image
+	ImagesPerRow      int
+	ImagesPerColumn   int
+	IndexCallbackFunc func(int, int)
 }
 
 func NewImageTableCache(row, col int, size fyne.Size) *ImageTableCache {
@@ -46,6 +47,11 @@ func (i *ImageTableCache) At(row, col int) *canvas.Image {
 func (i *ImageTableCache) Set(row, col int, img *canvas.Image) {
 	if row < i.ImagesPerRow && col < i.ImagesPerColumn {
 		i.images[row][col] = img
+	}
+}
+func (i *ImageTableCache) ImageSelect(id widget.TableCellID) {
+	if i.IndexCallbackFunc != nil {
+		i.IndexCallbackFunc(id.Row, id.Col)
 	}
 }
 
