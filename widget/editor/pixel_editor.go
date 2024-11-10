@@ -336,6 +336,7 @@ func (e *Editor) setPaletteColor() { // apply color choose from the palette
 	e.csi.Refresh()
 	e.cs.SetColorSelector(e.p[e.pi])
 	e.cpt.Refresh()
+	e.m.SetColor(e.p[e.pi])
 }
 
 func (e *Editor) setImagePortion() {
@@ -718,7 +719,7 @@ func (e *Editor) NewEmbededEditor(buttonLabel string) *fyne.Container {
 					e.cpt,
 				),
 				container.New(
-					layout.NewGridLayoutWithRows(1),
+					layout.NewVBoxLayout(),
 					widget.NewLabel("Selected color from your palette :"),
 					e.csi,
 				),
@@ -766,7 +767,7 @@ func (e *Editor) NewEditor() *fyne.Container {
 					e.cpt,
 				),
 				container.New(
-					layout.NewGridLayoutWithRows(1),
+					layout.NewVBoxLayout(),
 					widget.NewLabel("Selected color from your palette :"),
 					e.csi,
 				),
