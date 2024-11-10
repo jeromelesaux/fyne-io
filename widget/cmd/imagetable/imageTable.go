@@ -67,7 +67,7 @@ func indexSelected(row, col int) {
 
 // nolint: unused, deadcode
 func NewNumImagesCollection(nbRows, nbCols int) *ui.ImageTableCache {
-	images := ui.NewImageTableCache(nbRows, nbCols, fyne.NewSize(50., 50.))
+	images := ui.NewImageTableCache(nbRows, nbCols, fyne.NewSize(50., 50.), nil)
 	for i := 0; i < nbRows; i++ {
 		for j := 0; j < nbCols; j++ {
 			img := canvas.NewImageFromImage(ImageLabel(fmt.Sprintf(("%d-%d"), i, j)))
@@ -78,7 +78,7 @@ func NewNumImagesCollection(nbRows, nbCols int) *ui.ImageTableCache {
 }
 
 func NewImagesColletion(nbRows, nbCols int, in image.Image) *ui.ImageTableCache {
-	images := ui.NewImageTableCache(nbRows, nbCols, fyne.NewSize(50., 50.))
+	images := ui.NewImageTableCache(nbRows, nbCols, fyne.NewSize(50., 50.), nil)
 	for i := 0; i < nbRows; i++ {
 		for j := 0; j < nbCols; j++ {
 			img := canvas.NewImageFromImage(in)

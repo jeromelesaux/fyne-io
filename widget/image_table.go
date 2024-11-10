@@ -17,7 +17,7 @@ type ImageTableCache struct {
 	IndexCallbackFunc func(int, int)
 }
 
-func NewImageTableCache(row, col int, size fyne.Size) *ImageTableCache {
+func NewImageTableCache(row, col int, size fyne.Size, indexCallback func(int, int)) *ImageTableCache {
 	imgs := make([][]*canvas.Image, row)
 	for i := 0; i < row; i++ {
 		imgs[i] = make([]*canvas.Image, col)
@@ -30,11 +30,14 @@ func NewImageTableCache(row, col int, size fyne.Size) *ImageTableCache {
 	for i := 0; i < row; i++ {
 		indices[i] = col
 	}
-	return &ImageTableCache{
+
+	i := &ImageTableCache{
 		ImagesPerRow:    row,
 		ImagesPerColumn: col,
 		images:          imgs,
 	}
+	i.IndexCallbackFunc = indexCallback
+	return i
 }
 
 func (i *ImageTableCache) At(row, col int) *canvas.Image {
@@ -89,7 +92,7 @@ func emptyCell(imageSize fyne.Size) *canvas.Image {
 
 func NewEmptyImageTable(imageSize fyne.Size) *ImageTable {
 	imageTable := &ImageTable{}
-	imageTable.images = NewImageTableCache(1, 1, imageSize)
+	imageTable.images = NewImageTableCache(1, 1, imageSize, nil)
 	imageTable.ImageCallbackFunc = nil
 	imageTable.IndexCallbackFunc = nil
 	imageTable.SetImagesCallbackFunc = nil
@@ -182,7 +185,7 @@ func (i *ImageTable) ImagesLength() (row int, col int) {
 }
 
 func (i *ImageTable) Reset() {
-	imgs := NewImageTableCache(1, 1, i.imageSize)
+	imgs := NewImageTableCache(1, 1, i.imageSize, nil)
 	i.Update(imgs, 1, 1)
 	i.Refresh()
 	canvas.Refresh(i)
