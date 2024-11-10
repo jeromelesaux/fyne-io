@@ -90,11 +90,11 @@ func emptyCell(imageSize fyne.Size) *canvas.Image {
 	return canvasImg
 }
 
-func NewEmptyImageTable(imageSize fyne.Size) *ImageTable {
+func NewEmptyImageTable(imageSize fyne.Size, selectCell func(int, int)) *ImageTable {
 	imageTable := &ImageTable{}
 	imageTable.images = NewImageTableCache(1, 1, imageSize, nil)
 	imageTable.ImageCallbackFunc = nil
-	imageTable.IndexCallbackFunc = nil
+	imageTable.IndexCallbackFunc = selectCell
 	imageTable.SetImagesCallbackFunc = nil
 	imageTable.CreateCell = imageTable.ImageCreate
 	imageTable.Length = imageTable.ImagesLength
