@@ -41,6 +41,9 @@ func NewImageTableCache(row, col int, size fyne.Size, indexCallback func(int, in
 }
 
 func (i *ImageTableCache) At(row, col int) *canvas.Image {
+	if row < 0 || col < 0 {
+		return &canvas.Image{}
+	}
 	if row < i.ImagesPerRow && col < i.ImagesPerColumn {
 		return i.images[row][col]
 	}
@@ -48,6 +51,9 @@ func (i *ImageTableCache) At(row, col int) *canvas.Image {
 }
 
 func (i *ImageTableCache) Set(row, col int, img *canvas.Image) {
+	if row < 0 || col < 0 {
+		return
+	}
 	if row < i.ImagesPerRow && col < i.ImagesPerColumn {
 		i.images[row][col] = img
 	}
