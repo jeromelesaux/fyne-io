@@ -572,22 +572,24 @@ func (e *Editor) NewAvailablePalette(p color.Palette) {
 
 func (e *Editor) newMagnifyContainer() *fyne.Container {
 	return container.New(
-		layout.NewGridLayoutWithColumns(2),
-		widget.NewLabel("Magnify :"),
-		widget.NewSelect([]string{"x2", "x4", "x8"}, func(s string) {
-			switch s {
-			case "x2":
-				e.mg = MagnifyX2
-			case "x4":
-				e.mg = MagnifyX4
-			case "x8":
-				e.mg = MagnifyX8
-			default:
-				return
-			}
-			e.syncMap()
-		}),
-	)
+		layout.NewVBoxLayout(),
+		container.New(
+			layout.NewGridLayoutWithColumns(2),
+			widget.NewLabel("Magnify :"),
+			widget.NewSelect([]string{"x2", "x4", "x8"}, func(s string) {
+				switch s {
+				case "x2":
+					e.mg = MagnifyX2
+				case "x4":
+					e.mg = MagnifyX4
+				case "x8":
+					e.mg = MagnifyX8
+				default:
+					return
+				}
+				e.syncMap()
+			}),
+		))
 }
 
 func (e *Editor) newColorPickerContainer() *fyne.Container {
@@ -719,7 +721,7 @@ func (e *Editor) NewEmbededEditor(buttonLabel string) *fyne.Container {
 					e.cpt,
 				),
 				container.New(
-					layout.NewVBoxLayout(),
+					layout.NewGridLayoutWithRows(1),
 					widget.NewLabel("Selected color from your palette :"),
 					e.csi,
 				),
@@ -762,12 +764,12 @@ func (e *Editor) NewEditor() *fyne.Container {
 			container.New(
 				layout.NewGridLayoutWithRows(3),
 				container.New(
-					layout.NewCenterLayout(),
+					layout.NewVBoxLayout(),
 					widget.NewLabel("Your palette :"),
 					e.cpt,
 				),
 				container.New(
-					layout.NewVBoxLayout(),
+					layout.NewGridLayoutWithColumns(2),
 					widget.NewLabel("Selected color from your palette :"),
 					e.csi,
 				),
