@@ -436,7 +436,7 @@ func (e *Editor) selectColorPalette(id widget.TableCellID) {
 	}
 	y := id.Col
 	x := id.Row
-	e.pi = y + (x * 4)
+	e.pi = y + (x * 8)
 	e.m.SetColor(e.p[y])
 	e.setPaletteColor()
 }
@@ -636,18 +636,18 @@ func (e *Editor) newDirectionsContainer() *fyne.Container {
 
 func (e *Editor) newPaletteContainer(p *color.Palette, setTable func(t *widget.Table), sel func(id widget.TableCellID)) *widget.Table {
 	t := widget.NewTable(func() (int, int) {
-		col := len(*p) / 4
+		col := len(*p) / 8
 		if col == 0 {
 			col = 1
 		}
-		row := len(*p) % 4
+		row := len(*p) % 8
 		if row == 0 {
-			row = 4
+			row = 8
 		}
 		return col, row
 	}, func() fyne.CanvasObject {
 		o := canvas.NewImageFromImage(fillImageColor(color.Black, fyne.NewSize(10, 10)))
-		if len(*p) > 4 {
+		if len(*p) > 8 {
 			o.SetMinSize(default10x10Size)
 		} else {
 			o.SetMinSize(default20x20Size)
