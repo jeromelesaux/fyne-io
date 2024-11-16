@@ -28,14 +28,14 @@ func main() {
 		panic(err)
 	}
 
-	e := editor.NewEditor(i, editor.MagnifyX2, CpcOldPalette[0:8], NewCpcPlusPalette(), save, w)
+	e := editor.NewEditor(i, editor.MagnifyX2, CpcOldPalette[5:20], NewCpcPlusPalette(), save, w)
 	w.SetContent(
 		container.New(
 			layout.NewHBoxLayout(),
 			widget.NewButton("New", func() {
 				i := image.NewNRGBA(image.Rect(0, 0, 16, 16))
 				draw.Draw(i, i.Bounds(), &image.Uniform{color.Black}, image.Point{0, 0}, draw.Src)
-				e.NewImageAndPalette(i, CpcOldPalette[2:18])
+				e.NewImageAndPalette(i, CpcOldPalette[0:15])
 				e.NewAvailablePalette(CpcOldPalette)
 			}),
 			e.NewEmbededEditor("Export"),

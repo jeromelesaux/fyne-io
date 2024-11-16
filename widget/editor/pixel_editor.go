@@ -436,8 +436,11 @@ func (e *Editor) selectColorPalette(id widget.TableCellID) {
 	}
 	y := id.Col
 	x := id.Row
-	e.pi = y + (x * 4)
-	e.m.SetColor(e.p[y])
+	if len(e.p) <= y+(x*colorsByColumn) {
+		return
+	}
+	e.pi = y + (x * colorsByColumn)
+	e.m.SetColor(e.p[e.pi])
 	e.setPaletteColor()
 }
 
@@ -634,20 +637,26 @@ func (e *Editor) newDirectionsContainer() *fyne.Container {
 	)
 }
 
+const colorsByColumn = 8
+
 func (e *Editor) newPaletteContainer(p *color.Palette, setTable func(t *widget.Table), sel func(id widget.TableCellID)) *widget.Table {
 	t := widget.NewTable(func() (int, int) {
-		col := len(*p) / 4
-		if col == 0 {
-			col = 1
+		col := len(*p)
+		if len(*p) > colorsByColumn {
+			col = colorsByColumn
 		}
-		row := len(*p) % 4
+
+		row := len(*p) / colorsByColumn
+		if len(*p)%colorsByColumn != 0 {
+			row++
+		}
 		if row == 0 {
-			row = 4
+			row = 1
 		}
-		return col, row
+		return row, col
 	}, func() fyne.CanvasObject {
 		o := canvas.NewImageFromImage(fillImageColor(color.Black, fyne.NewSize(10, 10)))
-		if len(*p) > 4 {
+		if len(*p) > colorsByColumn {
 			o.SetMinSize(default10x10Size)
 		} else {
 			o.SetMinSize(default20x20Size)
@@ -656,7 +665,11 @@ func (e *Editor) newPaletteContainer(p *color.Palette, setTable func(t *widget.T
 	}, func(id widget.TableCellID, cell fyne.CanvasObject) {
 		y := id.Col
 		x := id.Row
-		cell.(*canvas.Image).Image = fillImageColor((*p)[y+(x*4)], fyne.NewSize(10, 10))
+		if y+(x*colorsByColumn) >= len(*p) {
+			cell.(*canvas.Image).Image = fillImageColor(color.Black, fyne.NewSize(10, 10))
+		} else {
+			cell.(*canvas.Image).Image = fillImageColor((*p)[y+(x*colorsByColumn)], fyne.NewSize(10, 10))
+		}
 		cell.Refresh()
 	})
 	t.OnSelected = sel
