@@ -712,23 +712,28 @@ func (e *Editor) NewEmbededEditor(buttonLabel string) *fyne.Container {
 		),
 		container.New(
 			layout.NewGridLayoutWithRows(2),
-
 			container.New(
 				layout.NewVBoxLayout(),
 				container.New(
-					layout.NewGridLayoutWithColumns(2),
-					widget.NewLabel("Your palette :"),
-					e.cpt,
-				),
-				container.New(
-					layout.NewGridLayoutWithRows(1),
-					widget.NewLabel("Selected color from your palette :"),
-					e.csi,
-				),
-				e.newColorPickerContainer(),
-				container.New(
-					layout.NewGridLayout(1),
-					e.cs.NewColorSelector(),
+					layout.NewVBoxLayout(),
+					container.New(
+						layout.NewGridLayoutWithColumns(2),
+						widget.NewLabel("Your palette :"),
+						e.cpt,
+					),
+					container.New(
+						layout.NewVBoxLayout(),
+						container.New(
+							layout.NewGridLayoutWithColumns(2),
+							widget.NewLabel("Selected color from your palette :"),
+							e.csi,
+						),
+
+						e.newColorPickerContainer(),
+						container.New(
+							layout.NewGridLayout(1),
+							e.cs.NewColorSelector(),
+						)),
 				),
 			),
 
