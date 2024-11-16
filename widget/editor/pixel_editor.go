@@ -608,28 +608,28 @@ func (e *Editor) newDirectionsContainer() *fyne.Container {
 
 		container.New(
 			layout.NewGridLayoutWithColumns(1),
-			widget.NewButton("UPx10", e.goUpX10),
+			widget.NewButtonWithIcon("x10", theme.MoveUpIcon(), e.goUpX10), // x10 up
 		),
 
 		container.New(
 			layout.NewGridLayoutWithColumns(1),
-			widget.NewButtonWithIcon("UP", theme.MoveUpIcon(), e.goUp),
+			widget.NewButtonWithIcon("", theme.MoveUpIcon(), e.goUp), // UP
 		),
 
 		container.New(
 			layout.NewGridLayoutWithColumns(4),
-			widget.NewButton("<<", e.goLeftX10),
-			widget.NewButtonWithIcon("LEFT", theme.NavigateBackIcon(), e.goLeft),
-			widget.NewButtonWithIcon("RIGHT", theme.NavigateNextIcon(), e.goRight),
-			widget.NewButton(">>", e.goRightX10),
+			widget.NewButtonWithIcon(" x10", theme.NavigateBackIcon(), e.goLeftX10), // x10 left
+			widget.NewButtonWithIcon("", theme.NavigateBackIcon(), e.goLeft),        // LEFT
+			widget.NewButtonWithIcon("", theme.NavigateNextIcon(), e.goRight),       //RIGHT
+			widget.NewButtonWithIcon("x10", theme.NavigateNextIcon(), e.goRightX10),
 		),
 		container.New(
 			layout.NewGridLayoutWithColumns(1),
-			widget.NewButtonWithIcon("DOWN", theme.MoveDownIcon(), e.goDown),
+			widget.NewButtonWithIcon("", theme.MoveDownIcon(), e.goDown), // DOWN
 		),
 		container.New(
 			layout.NewGridLayoutWithColumns(1),
-			widget.NewButton("DOWNx10", e.goDownx10),
+			widget.NewButtonWithIcon("x10", theme.MoveDownIcon(), e.goDownx10), // x10 Down
 		),
 	)
 }
