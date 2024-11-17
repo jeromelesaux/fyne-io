@@ -10,6 +10,7 @@ import (
 	"fyne.io/fyne/v2/canvas"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/layout"
+	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
 )
 
@@ -120,20 +121,28 @@ func NewOrderer(p color.Palette, setPalette func(color.Palette)) *Orderer {
 func (o *Orderer) NewOrderer() *fyne.Container {
 	return container.New(
 		layout.NewVBoxLayout(),
-		o.wcp,
 		container.New(
-			layout.NewGridLayoutWithColumns(2),
-			o.l,
-			o.cc,
-		),
-		o.wnp,
+			layout.NewGridLayoutWithRows(4),
+			o.wcp,
+			container.New(
+				layout.NewGridLayoutWithRows(2),
+				widget.NewButtonWithIcon("Clone", theme.ContentCopyIcon(), func() {
+					copy(o.np, o.cp)
+					o.wnp.Refresh()
+				}),
+				container.New(
+					layout.NewGridLayoutWithColumns(2),
+					o.l,
+					o.cc,
+				)),
+			o.wnp,
 
-		widget.NewButton("Apply", func() {
-			if o.setPal != nil {
-				o.setPal(o.np)
-			}
-		}),
-	)
+			widget.NewButton("Apply", func() {
+				if o.setPal != nil {
+					o.setPal(o.np)
+				}
+			}),
+		))
 }
 
 func (o *Orderer) positionSelectedColor(id widget.TableCellID) {
