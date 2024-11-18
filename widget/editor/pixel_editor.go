@@ -20,6 +20,7 @@ import (
 var (
 	default20x20Size = fyne.NewSize(20, 20)
 	default10x10Size = fyne.NewSize(10, 10)
+	default30x30Size = fyne.NewSize(30, 30)
 )
 
 const (
@@ -656,11 +657,7 @@ func (e *Editor) newPaletteContainer(p *color.Palette, setTable func(t *widget.T
 		return row, col
 	}, func() fyne.CanvasObject {
 		o := canvas.NewImageFromImage(fillImageColor(color.Black, fyne.NewSize(10, 10)))
-		if len(*p) > colorsByColumn {
-			o.SetMinSize(default10x10Size)
-		} else {
-			o.SetMinSize(default20x20Size)
-		}
+		o.SetMinSize(default20x20Size)
 		return o
 	}, func(id widget.TableCellID, cell fyne.CanvasObject) {
 		y := id.Col

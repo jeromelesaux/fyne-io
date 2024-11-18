@@ -16,9 +16,10 @@ import (
 )
 
 func main() {
+	os.Setenv("FYNE_SCALE", "0.7")
 	a := app.New()
 	w := a.NewWindow("image table")
-	w.Resize(fyne.NewSize(900, 400))
+	w.Resize(fyne.NewSize(1000, 800))
 	f, err := os.Open("./red.png")
 	if err != nil {
 		panic(err)
