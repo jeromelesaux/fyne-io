@@ -20,6 +20,7 @@ const (
 
 var (
 	default20x20Size = fyne.NewSize(20, 20)
+	default30x30Size = fyne.NewSize(30, 30)
 	default10x10Size = fyne.NewSize(10, 10)
 )
 
@@ -62,20 +63,17 @@ func NewOrderer(p color.Palette, setPalette func(color.Palette)) *Orderer {
 		}
 		return row, col
 	}, func() fyne.CanvasObject {
-		im := canvas.NewImageFromImage(fillImageColor(color.Black, fyne.NewSize(10, 10)))
-		if len(o.cp) > colorsByColumn {
-			im.SetMinSize(default10x10Size)
-		} else {
-			im.SetMinSize(default20x20Size)
-		}
+		im := canvas.NewImageFromImage(fillImageColor(color.Black, fyne.NewSize(20, 20)))
+		im.SetMinSize(default30x30Size)
+
 		return im
 	}, func(id widget.TableCellID, cell fyne.CanvasObject) {
 		y := id.Col
 		x := id.Row
 		if y+(x*colorsByColumn) >= len(o.cp) {
-			cell.(*canvas.Image).Image = fillImageColor(color.Black, fyne.NewSize(10, 10))
+			cell.(*canvas.Image).Image = fillImageColor(color.Black, fyne.NewSize(20, 20))
 		} else {
-			cell.(*canvas.Image).Image = fillImageColor((o.cp)[y+(x*colorsByColumn)], fyne.NewSize(10, 10))
+			cell.(*canvas.Image).Image = fillImageColor((o.cp)[y+(x*colorsByColumn)], fyne.NewSize(20, 20))
 		}
 		cell.Refresh()
 	})
@@ -96,20 +94,17 @@ func NewOrderer(p color.Palette, setPalette func(color.Palette)) *Orderer {
 		}
 		return row, col
 	}, func() fyne.CanvasObject {
-		im := canvas.NewImageFromImage(fillImageColor(color.Black, fyne.NewSize(10, 10)))
-		if len(o.np) > colorsByColumn {
-			im.SetMinSize(default10x10Size)
-		} else {
-			im.SetMinSize(default20x20Size)
-		}
+		im := canvas.NewImageFromImage(fillImageColor(color.Black, fyne.NewSize(20, 20)))
+		im.SetMinSize(default30x30Size)
+
 		return im
 	}, func(id widget.TableCellID, cell fyne.CanvasObject) {
 		y := id.Col
 		x := id.Row
 		if y+(x*colorsByColumn) >= len(o.cp) {
-			cell.(*canvas.Image).Image = fillImageColor(color.Black, fyne.NewSize(10, 10))
+			cell.(*canvas.Image).Image = fillImageColor(color.Black, fyne.NewSize(20, 20))
 		} else {
-			cell.(*canvas.Image).Image = fillImageColor((o.np)[y+(x*colorsByColumn)], fyne.NewSize(10, 10))
+			cell.(*canvas.Image).Image = fillImageColor((o.np)[y+(x*colorsByColumn)], fyne.NewSize(20, 20))
 		}
 		cell.Refresh()
 	})
