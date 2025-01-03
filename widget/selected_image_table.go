@@ -33,7 +33,7 @@ func NewCheckedImageWithImage(i *canvas.Image, s fyne.Size) *fyne.Container {
 	cb.SetChecked(true)
 	c.c = cb
 	ct := container.New(
-		layout.NewMaxLayout(),
+		layout.NewVBoxLayout(),
 		c.i,
 		c.c,
 	)
@@ -54,7 +54,7 @@ func NewCheckedImage(s fyne.Size) *fyne.Container {
 	cb.SetChecked(true)
 	c.c = cb
 	ct := container.New(
-		layout.NewMaxLayout(),
+		layout.NewVBoxLayout(),
 		c.i,
 		c.c,
 	)

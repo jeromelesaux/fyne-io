@@ -1,6 +1,6 @@
 module github.com/jeromelesaux/fyne-io
 
-go 1.17
+go 1.23
 
 require (
 	fyne.io/fyne/v2 v2.5.2
